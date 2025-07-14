@@ -120,138 +120,205 @@ export default function HomePage() {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8">
-            {/* Hardware Store Card - #1 Priority */}
-            <div className="group relative bg-white rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300 ring-4 ring-orange-500 ring-opacity-50">
-              <div className="absolute -top-4 -right-4 bg-gradient-to-r from-orange-500 to-red-500 text-white px-4 py-2 rounded-full text-sm font-bold">
+          <div className="grid md:grid-cols-4 gap-6">
+            {/* Hotels & Restaurants Card */}
+            <div className="group relative bg-white rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all duration-300">
+              <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-cyan-600 rounded-2xl opacity-0 group-hover:opacity-5 transition-opacity"></div>
+              <div className="relative">
+                <div className="w-14 h-14 bg-gradient-to-r from-blue-600 to-cyan-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                  <span className="text-2xl">🏨</span>
+                </div>
+                <h3 className="text-xl font-bold mb-3 group-hover:text-blue-600 transition-colors">Hotels & Restaurants</h3>
+                <ul className="space-y-2 text-sm text-gray-600">
+                  <li className="flex items-start">
+                    <span className="text-blue-600 mr-2">•</span>
+                    Instant room/table booking
+                  </li>
+                  <li className="flex items-start">
+                    <span className="text-blue-600 mr-2">•</span>
+                    Dynamic pricing & deals
+                  </li>
+                  <li className="flex items-start">
+                    <span className="text-blue-600 mr-2">•</span>
+                    Review management
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            {/* Real Estate Card */}
+            <div className="group relative bg-white rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all duration-300">
+              <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl opacity-0 group-hover:opacity-5 transition-opacity"></div>
+              <div className="relative">
+                <div className="w-14 h-14 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                  <span className="text-2xl">🏢</span>
+                </div>
+                <h3 className="text-xl font-bold mb-3 group-hover:text-purple-600 transition-colors">Real Estate</h3>
+                <ul className="space-y-2 text-sm text-gray-600">
+                  <li className="flex items-start">
+                    <span className="text-purple-600 mr-2">•</span>
+                    Property matching AI
+                  </li>
+                  <li className="flex items-start">
+                    <span className="text-purple-600 mr-2">•</span>
+                    Virtual tours & viewings
+                  </li>
+                  <li className="flex items-start">
+                    <span className="text-purple-600 mr-2">•</span>
+                    Lead scoring & tracking
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            {/* Car Dealerships Card */}
+            <div className="group relative bg-white rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all duration-300">
+              <div className="absolute inset-0 bg-gradient-to-r from-red-600 to-orange-600 rounded-2xl opacity-0 group-hover:opacity-5 transition-opacity"></div>
+              <div className="relative">
+                <div className="w-14 h-14 bg-gradient-to-r from-red-600 to-orange-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                  <span className="text-2xl">🚗</span>
+                </div>
+                <h3 className="text-xl font-bold mb-3 group-hover:text-red-600 transition-colors">Car Dealerships</h3>
+                <ul className="space-y-2 text-sm text-gray-600">
+                  <li className="flex items-start">
+                    <span className="text-red-600 mr-2">•</span>
+                    360° vehicle showcases
+                  </li>
+                  <li className="flex items-start">
+                    <span className="text-red-600 mr-2">•</span>
+                    Finance calculator
+                  </li>
+                  <li className="flex items-start">
+                    <span className="text-red-600 mr-2">•</span>
+                    Test drive booking
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            {/* Beauty Salons Card */}
+            <div className="group relative bg-white rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all duration-300">
+              <div className="absolute inset-0 bg-gradient-to-r from-pink-600 to-rose-600 rounded-2xl opacity-0 group-hover:opacity-5 transition-opacity"></div>
+              <div className="relative">
+                <div className="w-14 h-14 bg-gradient-to-r from-pink-600 to-rose-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                  <span className="text-2xl">💅</span>
+                </div>
+                <h3 className="text-xl font-bold mb-3 group-hover:text-pink-600 transition-colors">Beauty & Spa</h3>
+                <ul className="space-y-2 text-sm text-gray-600">
+                  <li className="flex items-start">
+                    <span className="text-pink-600 mr-2">•</span>
+                    Stylist portfolios
+                  </li>
+                  <li className="flex items-start">
+                    <span className="text-pink-600 mr-2">•</span>
+                    Appointment optimization
+                  </li>
+                  <li className="flex items-start">
+                    <span className="text-pink-600 mr-2">•</span>
+                    Loyalty programs
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            {/* Medical Clinics Card */}
+            <div className="group relative bg-white rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all duration-300">
+              <div className="absolute inset-0 bg-gradient-to-r from-green-600 to-emerald-600 rounded-2xl opacity-0 group-hover:opacity-5 transition-opacity"></div>
+              <div className="relative">
+                <div className="w-14 h-14 bg-gradient-to-r from-green-600 to-emerald-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                  <span className="text-2xl">🏥</span>
+                </div>
+                <h3 className="text-xl font-bold mb-3 group-hover:text-green-600 transition-colors">Medical & Dental</h3>
+                <ul className="space-y-2 text-sm text-gray-600">
+                  <li className="flex items-start">
+                    <span className="text-green-600 mr-2">•</span>
+                    Smart reminders
+                  </li>
+                  <li className="flex items-start">
+                    <span className="text-green-600 mr-2">•</span>
+                    Slot optimization
+                  </li>
+                  <li className="flex items-start">
+                    <span className="text-green-600 mr-2">•</span>
+                    Insurance verification
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            {/* Tech Shops Card */}
+            <div className="group relative bg-white rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all duration-300">
+              <div className="absolute inset-0 bg-gradient-to-r from-indigo-600 to-blue-600 rounded-2xl opacity-0 group-hover:opacity-5 transition-opacity"></div>
+              <div className="relative">
+                <div className="w-14 h-14 bg-gradient-to-r from-indigo-600 to-blue-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                  <span className="text-2xl">💻</span>
+                </div>
+                <h3 className="text-xl font-bold mb-3 group-hover:text-indigo-600 transition-colors">Tech Shops</h3>
+                <ul className="space-y-2 text-sm text-gray-600">
+                  <li className="flex items-start">
+                    <span className="text-indigo-600 mr-2">•</span>
+                    Spec comparisons
+                  </li>
+                  <li className="flex items-start">
+                    <span className="text-indigo-600 mr-2">•</span>
+                    Trade-in valuator
+                  </li>
+                  <li className="flex items-start">
+                    <span className="text-indigo-600 mr-2">•</span>
+                    Tech support chat
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            {/* Law Firms Card */}
+            <div className="group relative bg-white rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all duration-300">
+              <div className="absolute inset-0 bg-gradient-to-r from-gray-600 to-slate-600 rounded-2xl opacity-0 group-hover:opacity-5 transition-opacity"></div>
+              <div className="relative">
+                <div className="w-14 h-14 bg-gradient-to-r from-gray-600 to-slate-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                  <span className="text-2xl">⚖️</span>
+                </div>
+                <h3 className="text-xl font-bold mb-3 group-hover:text-gray-600 transition-colors">Law Firms</h3>
+                <ul className="space-y-2 text-sm text-gray-600">
+                  <li className="flex items-start">
+                    <span className="text-gray-600 mr-2">•</span>
+                    Consultation booking
+                  </li>
+                  <li className="flex items-start">
+                    <span className="text-gray-600 mr-2">•</span>
+                    Case status portal
+                  </li>
+                  <li className="flex items-start">
+                    <span className="text-gray-600 mr-2">•</span>
+                    Document automation
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            {/* Hardware Stores Card - #1 Priority */}
+            <div className="group relative bg-white rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all duration-300 ring-4 ring-orange-500 ring-opacity-50">
+              <div className="absolute -top-3 -right-3 bg-gradient-to-r from-orange-500 to-red-500 text-white px-3 py-1 rounded-full text-xs font-bold">
                 🔥 Hot Market
               </div>
               <div className="absolute inset-0 bg-gradient-to-r from-orange-600 to-red-600 rounded-2xl opacity-0 group-hover:opacity-5 transition-opacity"></div>
               <div className="relative">
-                <div className="w-16 h-16 bg-gradient-to-r from-orange-600 to-red-600 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                  <span className="text-3xl">🔨</span>
+                <div className="w-14 h-14 bg-gradient-to-r from-orange-600 to-red-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                  <span className="text-2xl">🔨</span>
                 </div>
-                <h3 className="text-2xl font-bold mb-4 group-hover:text-orange-600 transition-colors">Hardware Stores</h3>
-                <p className="text-sm text-gray-500 mb-4">Perfect for Nairobi's construction boom!</p>
-                <ul className="space-y-3 text-gray-600">
+                <h3 className="text-xl font-bold mb-3 group-hover:text-orange-600 transition-colors">Hardware Stores</h3>
+                <ul className="space-y-2 text-sm text-gray-600">
                   <li className="flex items-start">
                     <span className="text-orange-600 mr-2">•</span>
-                    Multi-item quotations (cement, steel, tiles)
+                    Multi-item quotations
                   </li>
                   <li className="flex items-start">
                     <span className="text-orange-600 mr-2">•</span>
-                    Photo-based product search
-                  </li>
-                  <li className="flex items-start">
-                    <span className="text-orange-600 mr-2">•</span>
-                    Real-time price & stock updates
-                  </li>
-                  <li className="flex items-start">
-                    <span className="text-orange-600 mr-2">•</span>
-                    Delivery scheduling & tracking
+                    Stock & price updates
                   </li>
                   <li className="flex items-start">
                     <span className="text-orange-600 mr-2">•</span>
                     Bulk order discounts
-                  </li>
-                </ul>
-              </div>
-            </div>
-
-            {/* Hotel Card */}
-            <div className="group relative bg-white rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300">
-              <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-cyan-600 rounded-2xl opacity-0 group-hover:opacity-5 transition-opacity"></div>
-              <div className="relative">
-                <div className="w-16 h-16 bg-gradient-to-r from-blue-600 to-cyan-600 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                  <span className="text-3xl">🏨</span>
-                </div>
-                <h3 className="text-2xl font-bold mb-4 group-hover:text-blue-600 transition-colors">Hotels</h3>
-                <ul className="space-y-3 text-gray-600">
-                  <li className="flex items-start">
-                    <span className="text-blue-600 mr-2">•</span>
-                    Instant room availability & pricing
-                  </li>
-                  <li className="flex items-start">
-                    <span className="text-blue-600 mr-2">•</span>
-                    24/7 booking assistance
-                  </li>
-                  <li className="flex items-start">
-                    <span className="text-blue-600 mr-2">•</span>
-                    Guest service automation
-                  </li>
-                  <li className="flex items-start">
-                    <span className="text-blue-600 mr-2">•</span>
-                    WhatsApp concierge service
-                  </li>
-                  <li className="flex items-start">
-                    <span className="text-blue-600 mr-2">•</span>
-                    Review management system
-                  </li>
-                </ul>
-              </div>
-            </div>
-
-            {/* Hardware Store Card */}
-            <div className="group relative bg-white rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300">
-              <div className="absolute inset-0 bg-gradient-to-r from-green-600 to-emerald-600 rounded-2xl opacity-0 group-hover:opacity-5 transition-opacity"></div>
-              <div className="relative">
-                <div className="w-16 h-16 bg-gradient-to-r from-green-600 to-emerald-600 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                  <span className="text-3xl">🔧</span>
-                </div>
-                <h3 className="text-2xl font-bold mb-4 group-hover:text-green-600 transition-colors">Hardware Stores</h3>
-                <ul className="space-y-3 text-gray-600">
-                  <li className="flex items-start">
-                    <span className="text-green-600 mr-2">•</span>
-                    Product search & availability
-                  </li>
-                  <li className="flex items-start">
-                    <span className="text-green-600 mr-2">•</span>
-                    Instant price quotes
-                  </li>
-                  <li className="flex items-start">
-                    <span className="text-green-600 mr-2">•</span>
-                    Bulk order processing
-                  </li>
-                  <li className="flex items-start">
-                    <span className="text-green-600 mr-2">•</span>
-                    Delivery scheduling
-                  </li>
-                  <li className="flex items-start">
-                    <span className="text-green-600 mr-2">•</span>
-                    Technical support chat
-                  </li>
-                </ul>
-              </div>
-            </div>
-
-            {/* Law Firm Card */}
-            <div className="group relative bg-white rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300">
-              <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl opacity-0 group-hover:opacity-5 transition-opacity"></div>
-              <div className="relative">
-                <div className="w-16 h-16 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                  <span className="text-3xl">⚖️</span>
-                </div>
-                <h3 className="text-2xl font-bold mb-4 group-hover:text-purple-600 transition-colors">Law Firms</h3>
-                <ul className="space-y-3 text-gray-600">
-                  <li className="flex items-start">
-                    <span className="text-purple-600 mr-2">•</span>
-                    Consultation booking
-                  </li>
-                  <li className="flex items-start">
-                    <span className="text-purple-600 mr-2">•</span>
-                    Case status updates
-                  </li>
-                  <li className="flex items-start">
-                    <span className="text-purple-600 mr-2">•</span>
-                    Document collection
-                  </li>
-                  <li className="flex items-start">
-                    <span className="text-purple-600 mr-2">•</span>
-                    Client intake automation
-                  </li>
-                  <li className="flex items-start">
-                    <span className="text-purple-600 mr-2">•</span>
-                    Billing inquiries
                   </li>
                 </ul>
               </div>
