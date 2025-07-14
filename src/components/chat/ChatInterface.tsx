@@ -97,8 +97,49 @@ export default function ChatInterface({
       )
     }, 1000)
 
-    // Simulate AI response
-    setTimeout(() => {
+    try {
+      // Call real AI API
+      const response = await fetch('/api/ai/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: content,
+          businessType: businessType,
+          businessContext: {
+            businessName: businessName,
+            location: 'Nairobi, Kenya',
+            services: ['General services']
+          }
+        })
+      })
+
+      const data = await response.json()
+
+      if (response.ok) {
+        const aiResponse: Message = {
+          id: `msg-${Date.now()}-ai`,
+          content: data.response,
+          role: 'assistant',
+          timestamp: new Date().toISOString()
+        }
+        
+        setMessages(prev => [...prev, aiResponse])
+      } else {
+        // Fallback to mock response if API fails
+        const aiResponse: Message = {
+          id: `msg-${Date.now()}-ai`,
+          content: generateAIResponse(content, businessType),
+          role: 'assistant',
+          timestamp: new Date().toISOString()
+        }
+        
+        setMessages(prev => [...prev, aiResponse])
+      }
+    } catch (error) {
+      console.error('AI API error:', error)
+      // Fallback to mock response
       const aiResponse: Message = {
         id: `msg-${Date.now()}-ai`,
         content: generateAIResponse(content, businessType),
@@ -107,8 +148,9 @@ export default function ChatInterface({
       }
       
       setMessages(prev => [...prev, aiResponse])
+    } finally {
       setIsTyping(false)
-    }, 2000)
+    }
 
     if (onSendMessage) {
       await onSendMessage(content)
