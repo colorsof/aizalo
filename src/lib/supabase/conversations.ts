@@ -1,9 +1,21 @@
 import { createClient } from '@supabase/supabase-js'
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY! // Use service role key for server-side operations
-)
+// Create Supabase client lazily to avoid build-time errors
+let supabase: ReturnType<typeof createClient> | null = null
+
+function getSupabaseClient() {
+  if (!supabase) {
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const key = process.env.SUPABASE_SERVICE_ROLE_KEY
+    
+    if (!url || !key) {
+      throw new Error('Supabase environment variables are not set')
+    }
+    
+    supabase = createClient(url, key)
+  }
+  return supabase
+}
 
 export interface ConversationMessage {
   id: string
@@ -46,7 +58,7 @@ export class ConversationService {
   ): Promise<Customer> {
     try {
       // First try to find existing customer
-      let query = supabase
+      let query = getSupabaseClient()
         .from('customers')
         .select('*')
         .eq('tenant_id', tenantId)
@@ -60,11 +72,11 @@ export class ConversationService {
       const { data: existingCustomer, error: findError } = await query.single()
 
       if (existingCustomer && !findError) {
-        return existingCustomer
+        return existingCustomer as unknown as Customer
       }
 
       // Create new customer
-      const { data: newCustomer, error: createError } = await supabase
+      const { data: newCustomer, error: createError } = await getSupabaseClient()
         .from('customers')
         .insert({
           tenant_id: tenantId,
@@ -80,7 +92,7 @@ export class ConversationService {
         throw createError
       }
 
-      return newCustomer
+      return newCustomer as unknown as Customer
     } catch (error) {
       console.error('Error finding/creating customer:', error)
       throw error
@@ -95,7 +107,7 @@ export class ConversationService {
   ): Promise<Conversation> {
     try {
       // Find active conversation
-      const { data: existingConversation, error: findError } = await supabase
+      const { data: existingConversation, error: findError } = await getSupabaseClient()
         .from('conversations')
         .select('*')
         .eq('tenant_id', tenantId)
@@ -105,11 +117,11 @@ export class ConversationService {
         .single()
 
       if (existingConversation && !findError) {
-        return existingConversation
+        return existingConversation as unknown as Conversation
       }
 
       // Create new conversation
-      const { data: newConversation, error: createError } = await supabase
+      const { data: newConversation, error: createError } = await getSupabaseClient()
         .from('conversations')
         .insert({
           tenant_id: tenantId,
@@ -126,7 +138,7 @@ export class ConversationService {
         throw createError
       }
 
-      return newConversation
+      return newConversation as unknown as Conversation
     } catch (error) {
       console.error('Error finding/creating conversation:', error)
       throw error
@@ -140,7 +152,7 @@ export class ConversationService {
   ): Promise<void> {
     try {
       // Get current conversation
-      const { data: conversation, error: getError } = await supabase
+      const { data: conversation, error: getError } = await getSupabaseClient()
         .from('conversations')
         .select('messages')
         .eq('id', conversationId)
@@ -151,10 +163,10 @@ export class ConversationService {
       }
 
       // Add new message to array
-      const updatedMessages = [...(conversation.messages || []), message]
+      const updatedMessages = [...((conversation as any).messages || []), message]
 
       // Update conversation
-      const { error: updateError } = await supabase
+      const { error: updateError } = await getSupabaseClient()
         .from('conversations')
         .update({
           messages: updatedMessages,
@@ -177,7 +189,7 @@ export class ConversationService {
     limit: number = 10
   ): Promise<Conversation[]> {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await getSupabaseClient()
         .from('conversations')
         .select(`
           *,
@@ -195,7 +207,7 @@ export class ConversationService {
         throw error
       }
 
-      return data || []
+      return (data || []) as unknown as Conversation[]
     } catch (error) {
       console.error('Error getting recent conversations:', error)
       throw error
@@ -214,22 +226,22 @@ export class ConversationService {
 
       // Get counts for different periods
       const [todayCount, weekCount, monthCount, totalCount] = await Promise.all([
-        supabase
+        getSupabaseClient()
           .from('conversations')
           .select('id', { count: 'exact', head: true })
           .eq('tenant_id', tenantId)
           .gte('created_at', today.toISOString()),
-        supabase
+        getSupabaseClient()
           .from('conversations')
           .select('id', { count: 'exact', head: true })
           .eq('tenant_id', tenantId)
           .gte('created_at', thisWeek.toISOString()),
-        supabase
+        getSupabaseClient()
           .from('conversations')
           .select('id', { count: 'exact', head: true })
           .eq('tenant_id', tenantId)
           .gte('created_at', thisMonth.toISOString()),
-        supabase
+        getSupabaseClient()
           .from('conversations')
           .select('id', { count: 'exact', head: true })
           .eq('tenant_id', tenantId)
@@ -253,7 +265,7 @@ export class ConversationService {
     status: 'active' | 'waiting' | 'resolved'
   ): Promise<void> {
     try {
-      const { error } = await supabase
+      const { error } = await getSupabaseClient()
         .from('conversations')
         .update({
           status,
@@ -271,4 +283,28 @@ export class ConversationService {
   }
 }
 
-export const conversationService = new ConversationService()
+// Export a lazy-initialized service to avoid build-time errors
+let _conversationService: ConversationService | null = null
+
+export function getConversationService() {
+  if (!_conversationService) {
+    _conversationService = new ConversationService()
+  }
+  return _conversationService
+}
+
+// For backward compatibility
+export const conversationService = {
+  findOrCreateCustomer: (...args: Parameters<ConversationService['findOrCreateCustomer']>) => 
+    getConversationService().findOrCreateCustomer(...args),
+  findOrCreateConversation: (...args: Parameters<ConversationService['findOrCreateConversation']>) => 
+    getConversationService().findOrCreateConversation(...args),
+  addMessage: (...args: Parameters<ConversationService['addMessage']>) => 
+    getConversationService().addMessage(...args),
+  getRecentConversations: (...args: Parameters<ConversationService['getRecentConversations']>) => 
+    getConversationService().getRecentConversations(...args),
+  getConversationStats: (...args: Parameters<ConversationService['getConversationStats']>) => 
+    getConversationService().getConversationStats(...args),
+  updateConversationStatus: (...args: Parameters<ConversationService['updateConversationStatus']>) => 
+    getConversationService().updateConversationStatus(...args)
+}
