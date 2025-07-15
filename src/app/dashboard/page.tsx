@@ -1,80 +1,69 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import MetricCard from '@/components/dashboard/MetricCard'
 import ConversationList from '@/components/dashboard/ConversationList'
 import QuickActions from '@/components/dashboard/QuickActions'
 import RevenueChart from '@/components/dashboard/RevenueChart'
+import NotificationsDropdown from '@/components/dashboard/NotificationsDropdown'
+import { useRealtimeMetrics } from '@/hooks/useRealtimeMetrics'
+import { useRealtimeConversations } from '@/hooks/useRealtimeConversations'
+import { useRealtimeNotifications } from '@/hooks/useRealtimeNotifications'
 
 export default function DashboardPage() {
   const [selectedPeriod, setSelectedPeriod] = useState('today')
-
-  // Mock data - will be replaced with real data from Supabase
-  const metrics = {
+  const [tenantId] = useState('test-tenant-id') // In production, get from auth context
+  const [userId] = useState('test-user-id') // In production, get from auth context
+  
+  // Real-time data hooks
+  const { metrics, loading: metricsLoading } = useRealtimeMetrics(tenantId)
+  const { conversations, loading: conversationsLoading } = useRealtimeConversations(tenantId)
+  const { notifications, unreadCount, markAsRead, markAllAsRead, requestPermission } = useRealtimeNotifications(userId)
+  
+  // Request notification permission on mount
+  useEffect(() => {
+    requestPermission()
+  }, [requestPermission])
+  
+  // Transform metrics for display
+  const displayMetrics = {
     conversations: {
-      total: 156,
-      change: { value: 12, trend: 'up' as const }
+      total: metrics.activeConversations,
+      change: { value: metrics.conversationGrowth, trend: metrics.conversationGrowth > 0 ? 'up' as const : 'down' as const }
     },
     leads: {
-      total: 48,
-      change: { value: 8, trend: 'up' as const }
+      total: metrics.newLeads,
+      change: { value: metrics.leadGrowth, trend: metrics.leadGrowth > 0 ? 'up' as const : 'down' as const }
     },
     revenue: {
-      total: 'KSH 125,000',
-      change: { value: 15, trend: 'up' as const }
+      total: `KSH ${metrics.totalRevenue.toLocaleString()}`,
+      change: { value: metrics.revenueGrowth, trend: metrics.revenueGrowth > 0 ? 'up' as const : 'down' as const }
     },
     conversionRate: {
-      total: '31%',
-      change: { value: 3, trend: 'up' as const }
+      total: `${metrics.conversionRate.toFixed(1)}%`,
+      change: { value: metrics.conversionGrowth, trend: metrics.conversionGrowth > 0 ? 'up' as const : 'down' as const }
     }
   }
-
-  const conversations = [
-    {
-      id: '1',
-      customerName: 'John Kamau',
-      lastMessage: 'How much for 50 bags of cement?',
-      timestamp: new Date(Date.now() - 1000 * 60 * 5).toISOString(),
-      channel: 'whatsapp' as const,
-      unread: true,
-      status: 'active' as const
-    },
-    {
-      id: '2',
-      customerName: 'Mary Wanjiru',
-      lastMessage: 'Thank you, I will come tomorrow',
-      timestamp: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
-      channel: 'facebook' as const,
-      unread: false,
-      status: 'resolved' as const
-    },
-    {
-      id: '3',
-      customerName: 'Peter Ochieng',
-      lastMessage: 'Do you have iron sheets in stock?',
-      timestamp: new Date(Date.now() - 1000 * 60 * 60).toISOString(),
-      channel: 'whatsapp' as const,
-      unread: true,
-      status: 'waiting' as const
-    },
-    {
-      id: '4',
-      customerName: 'Grace Njeri',
-      lastMessage: 'Saw your video! Do you deliver to Kiambu?',
-      timestamp: new Date(Date.now() - 1000 * 60 * 90).toISOString(),
-      channel: 'tiktok' as const,
-      unread: false,
-      status: 'active' as const
-    }
-  ]
-
+  
+  // Transform conversations for display
+  const displayConversations = conversations.slice(0, 5).map(conv => ({
+    id: conv.id,
+    customerName: conv.customer_name,
+    lastMessage: conv.last_message,
+    timestamp: conv.last_message_time,
+    channel: conv.channel as 'whatsapp' | 'facebook' | 'instagram' | 'tiktok' | 'web',
+    unread: conv.unread_count > 0,
+    status: conv.status
+  }))
+  
+  // Mock revenue data for now - will be replaced with real data
   const revenueData = [
     { month: 'Jan', revenue: 85000, leads: 120 },
     { month: 'Feb', revenue: 92000, leads: 135 },
     { month: 'Mar', revenue: 78000, leads: 110 },
     { month: 'Apr', revenue: 105000, leads: 165 },
     { month: 'May', revenue: 118000, leads: 180 },
-    { month: 'Jun', revenue: 125000, leads: 195 }
+    { month: 'Jun', revenue: metrics.totalRevenue || 125000, leads: 195 }
   ]
 
   const quickActions = [
@@ -145,18 +134,20 @@ export default function DashboardPage() {
                   value={selectedPeriod}
                   onChange={(e) => setSelectedPeriod(e.target.value)}
                   className="text-sm border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                  aria-label="Time period selector"
                 >
                   <option value="today">Today</option>
                   <option value="week">This Week</option>
                   <option value="month">This Month</option>
                   <option value="year">This Year</option>
                 </select>
-                <button className="text-gray-500 hover:text-gray-700">
-                  <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                  </svg>
-                </button>
-                <button className="flex items-center text-sm text-gray-700 hover:text-gray-900">
+                <NotificationsDropdown
+                  notifications={notifications}
+                  unreadCount={unreadCount}
+                  onMarkAsRead={markAsRead}
+                  onMarkAllAsRead={markAllAsRead}
+                />
+                <button type="button" className="flex items-center text-sm text-gray-700 hover:text-gray-900">
                   <div className="h-8 w-8 rounded-full bg-gray-300 mr-2"></div>
                   <span>Bernard K.</span>
                 </button>
@@ -176,12 +167,20 @@ export default function DashboardPage() {
           </p>
         </div>
 
+        {/* Loading State */}
+        {(metricsLoading || conversationsLoading) && (
+          <div className="flex items-center justify-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+            <span className="ml-2 text-gray-600">Loading real-time data...</span>
+          </div>
+        )}
+        
         {/* Metrics Grid */}
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 mb-8">
           <MetricCard
-            title="Total Conversations"
-            value={metrics.conversations.total}
-            change={metrics.conversations.change}
+            title="Active Conversations"
+            value={displayMetrics.conversations.total}
+            change={displayMetrics.conversations.change}
             icon={
               <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
@@ -192,8 +191,8 @@ export default function DashboardPage() {
           />
           <MetricCard
             title="New Leads"
-            value={metrics.leads.total}
-            change={metrics.leads.change}
+            value={displayMetrics.leads.total}
+            change={displayMetrics.leads.change}
             icon={
               <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
@@ -204,8 +203,8 @@ export default function DashboardPage() {
           />
           <MetricCard
             title="Revenue Generated"
-            value={metrics.revenue.total}
-            change={metrics.revenue.change}
+            value={displayMetrics.revenue.total}
+            change={displayMetrics.revenue.change}
             icon={
               <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -216,8 +215,8 @@ export default function DashboardPage() {
           />
           <MetricCard
             title="Conversion Rate"
-            value={metrics.conversionRate.total}
-            change={metrics.conversionRate.change}
+            value={displayMetrics.conversionRate.total}
+            change={displayMetrics.conversionRate.change}
             icon={
               <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
@@ -233,8 +232,8 @@ export default function DashboardPage() {
           {/* Conversations List - Takes 2 columns */}
           <div className="lg:col-span-2">
             <ConversationList 
-              conversations={conversations}
-              onConversationClick={(id) => console.log('Open conversation:', id)}
+              conversations={displayConversations}
+              onConversationClick={(id) => window.location.href = `/conversations?id=${id}`}
             />
           </div>
 
@@ -270,7 +269,7 @@ export default function DashboardPage() {
                   <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
                     Active
                   </span>
-                  <button className="text-gray-400 hover:text-gray-600">
+                  <button type="button" className="text-gray-400 hover:text-gray-600" aria-label="Campaign options">
                     <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
                     </svg>
@@ -293,12 +292,63 @@ export default function DashboardPage() {
                   <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
                     Scheduled
                   </span>
-                  <button className="text-gray-400 hover:text-gray-600">
+                  <button type="button" className="text-gray-400 hover:text-gray-600" aria-label="Campaign options">
                     <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
                     </svg>
                   </button>
                 </div>
+              </div>
+            </div>
+          </div>
+          
+          {/* Recent Activity Feed */}
+          <div className="bg-white shadow rounded-lg">
+            <div className="px-4 py-5 sm:p-6">
+              <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">Recent Activity</h3>
+              <div className="space-y-3">
+                {metrics.recentActivity.length === 0 ? (
+                  <p className="text-sm text-gray-500">No recent activity</p>
+                ) : (
+                  metrics.recentActivity.slice(0, 5).map((activity) => (
+                    <div key={activity.id} className="flex items-start space-x-3">
+                      <div className="flex-shrink-0">
+                        {activity.type === 'conversation' && (
+                          <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center">
+                            <svg className="h-4 w-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                            </svg>
+                          </div>
+                        )}
+                        {activity.type === 'lead' && (
+                          <div className="h-8 w-8 rounded-full bg-green-100 flex items-center justify-center">
+                            <svg className="h-4 w-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                            </svg>
+                          </div>
+                        )}
+                        {activity.type === 'sale' && (
+                          <div className="h-8 w-8 rounded-full bg-yellow-100 flex items-center justify-center">
+                            <svg className="h-4 w-4 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                          </div>
+                        )}
+                        {activity.type === 'campaign' && (
+                          <div className="h-8 w-8 rounded-full bg-purple-100 flex items-center justify-center">
+                            <svg className="h-4 w-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                            </svg>
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm text-gray-900">{activity.message}</p>
+                        <p className="text-xs text-gray-500">{new Date(activity.timestamp).toLocaleTimeString()}</p>
+                      </div>
+                    </div>
+                  ))
+                )}
               </div>
             </div>
           </div>

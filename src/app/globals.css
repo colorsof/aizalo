@@ -49,6 +49,33 @@
   animation-delay: 0.2s;
 }
 
+.animation-delay-300 {
+  animation-delay: 0.3s;
+}
+
 .animation-delay-400 {
   animation-delay: 0.4s;
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #1a1a1a;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #4a4a4a;
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #6a6a6a;
 }
