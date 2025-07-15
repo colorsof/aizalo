@@ -61,7 +61,7 @@ export default function IndustriesSection() {
     visible: {
       y: 0,
       opacity: 1,
-      transition: { duration: 0.6, ease: "easeOut" },
+      transition: { duration: 0.6, ease: "easeOut" as const },
     },
   }
 
@@ -358,10 +358,7 @@ interface IndustryItemProps {
   title: string
   description: string
   features: string[]
-  variants: {
-    hidden: { opacity: number; y?: number }
-    visible: { opacity: number; y?: number; transition: { duration: number; ease: string } }
-  }
+  variants: any
   delay: number
   direction: "left" | "right"
   isHot?: boolean
