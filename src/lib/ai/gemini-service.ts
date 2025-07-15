@@ -13,7 +13,7 @@ export class GeminiService {
 
   constructor(config: GeminiServiceConfig = {}) {
     this.model = genAI.getGenerativeModel({
-      model: config.model || 'gemini-pro',
+      model: config.model || 'gemini-1.5-flash',
     })
   }
 

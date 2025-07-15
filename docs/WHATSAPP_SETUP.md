@@ -16,9 +16,9 @@
 ## Step 2: Get WhatsApp Credentials
 1. In your app dashboard, go to "WhatsApp" → "Getting Started"
 2. You'll get:
-   - **Phone Number ID**: Copy this
-   - **WhatsApp Business Account ID**: Copy this
-   - **Temporary Access Token**: Copy this (valid for 24 hours)
+   - **Phone Number ID**: Copy this 739798009211958
+   - **WhatsApp Business Account ID**: Copy this 23994473803555973
+   - **Temporary Access Token**: Copy this (valid for 24 hours) EAAScLGmoVpwBPEHd2yqtw2Qymc4C8qz4zcj83zHhh9cZBdBbufVnj7VERVFDZB3Jae8qXCED33xvH08HFtmmhxWE7Xz0WjHQRs2GHVcqZCVDpjCl7ZB9S4KZAZCX682jtL1iSdDw28AgNiroNLPdxk1OuBI2Jp6tZBx9EzMGItOwKfAKeoUIXekJoQKvLH2nkUBD4UrZCgutUbHN65aqezd9RJ4lNC2jPfnkqXSHUfUKWlvPikZCajLcd6Eo1
 
 ## Step 3: Get Permanent Access Token
 1. Go to "System Users" in Business Settings
@@ -29,7 +29,7 @@
 
 ## Step 4: Configure Webhook
 1. In your app, go to "WhatsApp" → "Configuration"
-2. Set Webhook URL: `https://your-domain.vercel.app/api/whatsapp/webhook`
+2. Set Webhook URL: `https://aizalo.vercel.app/api/whatsapp/webhook`
 3. Set Verify Token: `aizalo_webhook_verify_2024`
 4. Subscribe to these fields:
    - `messages`

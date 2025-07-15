@@ -9,11 +9,28 @@ export async function GET(request: NextRequest) {
     const token = searchParams.get('hub.verify_token')
     const challenge = searchParams.get('hub.challenge')
 
+    console.log('Webhook verification attempt:', { mode, token, challenge })
+
     // Check if this is a valid verification request
-    if (mode === 'subscribe' && token === process.env.WHATSAPP_WEBHOOK_VERIFY_TOKEN) {
+    // For initial setup, we'll hardcode the token. Update this after adding env vars to Vercel
+    const VERIFY_TOKEN = process.env.WHATSAPP_WEBHOOK_VERIFY_TOKEN || 'aizalo_webhook_verify_2024'
+    
+    if (mode === 'subscribe' && token === VERIFY_TOKEN) {
       console.log('WhatsApp webhook verified successfully')
-      return new Response(challenge, { status: 200 })
+      // Return only the challenge value as plain text
+      return new Response(challenge, { 
+        status: 200,
+        headers: {
+          'Content-Type': 'text/plain',
+        }
+      })
     }
+
+    console.log('Webhook verification failed:', { 
+      expectedToken: VERIFY_TOKEN, 
+      receivedToken: token,
+      mode 
+    })
 
     return NextResponse.json(
       { error: 'Invalid verification token' },

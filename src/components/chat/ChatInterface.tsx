@@ -127,27 +127,27 @@ export default function ChatInterface({
         
         setMessages(prev => [...prev, aiResponse])
       } else {
-        // Fallback to mock response if API fails
-        const aiResponse: Message = {
+        // Show error message
+        const errorMessage: Message = {
           id: `msg-${Date.now()}-ai`,
-          content: generateAIResponse(content, businessType),
+          content: `I apologize, but I'm having trouble processing your request. ${data.error || 'Please try again.'}`,
           role: 'assistant',
           timestamp: new Date().toISOString()
         }
         
-        setMessages(prev => [...prev, aiResponse])
+        setMessages(prev => [...prev, errorMessage])
       }
     } catch (error) {
       console.error('AI API error:', error)
-      // Fallback to mock response
-      const aiResponse: Message = {
+      // Show error message
+      const errorMessage: Message = {
         id: `msg-${Date.now()}-ai`,
-        content: generateAIResponse(content, businessType),
+        content: "I apologize, but I'm experiencing technical difficulties. Please try again in a moment.",
         role: 'assistant',
         timestamp: new Date().toISOString()
       }
       
-      setMessages(prev => [...prev, aiResponse])
+      setMessages(prev => [...prev, errorMessage])
     } finally {
       setIsTyping(false)
     }
@@ -157,26 +157,6 @@ export default function ChatInterface({
     }
   }
 
-  const generateAIResponse = (userMessage: string, businessType: string): string => {
-    const lowerMessage = userMessage.toLowerCase()
-    
-    if (lowerMessage.includes('price') || lowerMessage.includes('how much')) {
-      switch (businessType) {
-        case 'hardware_store':
-          return "I can help you with pricing! What items are you looking for? For example:\n\n• Cement - Ksh 750 per bag\n• Iron sheets - Ksh 850 each\n• Tiles - From Ksh 1,200 per box\n\nFor bulk orders, I can offer better prices. How many do you need?"
-        case 'restaurant':
-          return "Our prices are very reasonable! Here are today's specials:\n\n• Ugali & Nyama Choma - Ksh 850\n• Fish & Chips - Ksh 750\n• Chicken Biryani - Ksh 900\n\nWould you like to make a reservation?"
-        default:
-          return "I'd be happy to discuss pricing with you. What specific service or product are you interested in?"
-      }
-    }
-    
-    if (lowerMessage.includes('hello') || lowerMessage.includes('hi')) {
-      return `Welcome to ${businessName}! 👋 I'm here to help you 24/7. What can I assist you with today?`
-    }
-    
-    return "I understand you're interested in our services. Let me help you with that. Could you tell me more about what you're looking for?"
-  }
 
   const handlePriceAccepted = (finalPrice: number) => {
     const confirmMessage: Message = {

@@ -1,5 +1,6 @@
 import { geminiService } from './gemini-service'
 import { groqService } from './groq-service'
+import { openaiService } from './openai-service'
 
 export interface AIRequest {
   message: string
@@ -20,7 +21,7 @@ export interface AIResponse {
   response: string
   intent?: string
   urgency?: string
-  aiModel: 'gemini' | 'groq'
+  aiModel: 'gemini' | 'groq' | 'openai'
   processingTime: number
   metadata?: any
 }
@@ -51,12 +52,30 @@ export class AIRouter {
     } catch (error) {
       console.error('AI routing error:', error)
       
-      // Fallback to a simple response
-      return {
-        response: "I'm here to help! Could you please repeat your question?",
-        aiModel: 'gemini',
-        processingTime: Date.now() - startTime,
-        metadata: { error: true }
+      // Try OpenAI as backup
+      try {
+        const response = await openaiService.handleEmergencyResponse(
+          request.message,
+          request.businessType,
+          error instanceof Error ? error.message : 'Unknown error'
+        )
+        
+        return {
+          response,
+          aiModel: 'openai',
+          processingTime: Date.now() - startTime,
+          metadata: { error: true, fallback: true }
+        }
+      } catch (backupError) {
+        console.error('OpenAI backup also failed:', backupError)
+        
+        // Ultimate fallback
+        return {
+          response: "I'm here to help! Could you please repeat your question?",
+          aiModel: 'openai',
+          processingTime: Date.now() - startTime,
+          metadata: { error: true, hardFallback: true }
+        }
       }
     }
   }

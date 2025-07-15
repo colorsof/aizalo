@@ -1,6 +1,8 @@
 export { geminiService } from './gemini-service'
 export { groqService } from './groq-service'
+export { openaiService } from './openai-service'
 export { aiRouter, processCustomerMessage } from './ai-router'
 export type { AIRequest, AIResponse } from './ai-router'
 export type { GeminiServiceConfig } from './gemini-service'
 export type { GroqServiceConfig } from './groq-service'
+export type { OpenAIServiceConfig } from './openai-service'
