@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { Hero } from '@/components/ui/animated-hero'
 
 export default function HomePage() {
   return (
@@ -38,15 +39,8 @@ export default function HomePage() {
           <div className="absolute bottom-1/4 left-1/3 w-96 h-96 bg-pink-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-4000"></div>
         </div>
 
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="text-6xl md:text-8xl font-bold text-white mb-8 animate-fade-in-up">
-            AI That <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">Transforms</span>
-            <br />Your Business
-          </h1>
-          <p className="text-xl md:text-2xl text-gray-200 mb-12 max-w-3xl mx-auto animate-fade-in-up animation-delay-200">
-            Unleash unlimited potential with AI assistants that understand your customers, 
-            speak their language, and work tirelessly to grow your business.
-          </p>
+        <div className="relative z-10 w-full">
+          <Hero />
           
           {/* Trust Indicators */}
           <div className="flex items-center justify-center space-x-8 mb-8 animate-fade-in-up animation-delay-300">
@@ -62,19 +56,6 @@ export default function HomePage() {
               <p className="text-3xl font-bold text-white">98%</p>
               <p className="text-sm text-gray-300">Customer Satisfaction</p>
             </div>
-          </div>
-          
-          <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in-up animation-delay-400">
-            <Link href="/demo" className="group relative inline-flex items-center justify-center px-8 py-4 text-lg font-medium text-white bg-gradient-to-r from-purple-600 to-pink-600 rounded-full overflow-hidden shadow-2xl transition-all duration-300 hover:scale-105 hover:shadow-purple-500/25">
-              <span className="relative z-10">Try Live Demo</span>
-              <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-            </Link>
-            <Link href="#how-it-works" className="inline-flex items-center justify-center px-8 py-4 text-lg font-medium text-white border-2 border-white/20 rounded-full backdrop-blur-sm transition-all duration-300 hover:bg-white/10 hover:border-white/40">
-              See How It Works
-              <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
-            </Link>
           </div>
         </div>
 
