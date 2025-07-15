@@ -71,8 +71,15 @@ export async function POST(request: NextRequest) {
     if (result.success) {
       return NextResponse.json(result)
     } else {
+      // Handle different error types
+      let errorMessage = 'Failed to send email'
+      if ('error' in result && result.error) {
+        errorMessage = result.error
+      } else if ('errors' in result && result.errors && result.errors.length > 0) {
+        errorMessage = result.errors.map(e => e.error).join(', ')
+      }
       return NextResponse.json(
-        { error: result.error || 'Failed to send email' },
+        { error: errorMessage },
         { status: 500 }
       )
     }

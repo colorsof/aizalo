@@ -152,7 +152,7 @@ export function useRealtimeMetrics(tenantId: string) {
       metricsChannel = supabase
         .channel(`metrics:${tenantId}`)
         .on(
-          'postgres_changes',
+          'postgres_changes' as any,
           {
             event: '*',
             schema: 'public',
@@ -165,7 +165,7 @@ export function useRealtimeMetrics(tenantId: string) {
           }
         )
         .on(
-          'postgres_changes',
+          'postgres_changes' as any,
           {
             event: '*',
             schema: 'public',
@@ -178,7 +178,7 @@ export function useRealtimeMetrics(tenantId: string) {
           }
         )
         .on(
-          'postgres_changes',
+          'postgres_changes' as any,
           {
             event: '*',
             schema: 'public',
@@ -196,14 +196,14 @@ export function useRealtimeMetrics(tenantId: string) {
       activityChannel = supabase
         .channel(`activity:${tenantId}`)
         .on(
-          'postgres_changes',
+          'postgres_changes' as any,
           {
             event: 'INSERT',
             schema: 'public',
             table: 'activity_log',
             filter: `tenant_id=eq.${tenantId}`
           },
-          (payload) => {
+          (payload: any) => {
             // Add new activity to the front of the list
             setMetrics(prev => ({
               ...prev,

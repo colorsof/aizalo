@@ -101,17 +101,17 @@ export default function NotificationsDropdown({
                           {(notification.type === 'info' || notification.type === 'success' || notification.type === 'warning' || notification.type === 'error') && (
                             <div className={classNames(
                               'h-8 w-8 rounded-full flex items-center justify-center',
-                              notification.type === 'info' && 'bg-blue-100',
-                              notification.type === 'success' && 'bg-green-100',
-                              notification.type === 'warning' && 'bg-yellow-100',
-                              notification.type === 'error' && 'bg-red-100'
+                              notification.type === 'info' ? 'bg-blue-100' : '',
+                              notification.type === 'success' ? 'bg-green-100' : '',
+                              notification.type === 'warning' ? 'bg-yellow-100' : '',
+                              notification.type === 'error' ? 'bg-red-100' : ''
                             )}>
                               <svg className={classNames(
                                 'h-4 w-4',
-                                notification.type === 'info' && 'text-blue-600',
-                                notification.type === 'success' && 'text-green-600',
-                                notification.type === 'warning' && 'text-yellow-600',
-                                notification.type === 'error' && 'text-red-600'
+                                notification.type === 'info' ? 'text-blue-600' : '',
+                                notification.type === 'success' ? 'text-green-600' : '',
+                                notification.type === 'warning' ? 'text-yellow-600' : '',
+                                notification.type === 'error' ? 'text-red-600' : ''
                               )} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                               </svg>

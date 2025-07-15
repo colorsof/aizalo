@@ -17,7 +17,7 @@ interface Conversation {
 }
 
 interface RealtimeUpdate {
-  eventType: 'INSERT' | 'UPDATE' | 'DELETE'
+  eventType: string
   new: Conversation | null
   old: Conversation | null
 }
@@ -49,14 +49,14 @@ export function useRealtimeConversations(tenantId: string) {
         channel = supabase
           .channel(`conversations:${tenantId}`)
           .on(
-            'postgres_changes',
+            'postgres_changes' as any,
             {
               event: '*',
               schema: 'public',
               table: 'conversations',
               filter: `tenant_id=eq.${tenantId}`
             },
-            (payload: RealtimeUpdate) => {
+            (payload: any) => {
               handleRealtimeUpdate(payload)
             }
           )

@@ -60,14 +60,14 @@ export function useRealtimeNotifications(userId: string) {
       channel = supabase
         .channel(`notifications:${userId}`)
         .on(
-          'postgres_changes',
+          'postgres_changes' as any,
           {
             event: 'INSERT',
             schema: 'public',
             table: 'notifications',
             filter: `user_id=eq.${userId}`
           },
-          (payload) => {
+          (payload: any) => {
             const newNotification: Notification = {
               id: payload.new.id,
               type: payload.new.type,
@@ -94,14 +94,14 @@ export function useRealtimeNotifications(userId: string) {
           }
         )
         .on(
-          'postgres_changes',
+          'postgres_changes' as any,
           {
             event: 'UPDATE',
             schema: 'public',
             table: 'notifications',
             filter: `user_id=eq.${userId}`
           },
-          (payload) => {
+          (payload: any) => {
             setNotifications(prev =>
               prev.map(n => n.id === payload.new.id ? {
                 ...n,
