@@ -86,7 +86,7 @@ export default function DashboardPage() {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
         </svg>
       ),
-      onClick: () => console.log('Send campaign'),
+      onClick: () => window.location.href = '/content',
       color: 'bg-blue-500'
     },
     {
@@ -133,26 +133,34 @@ export default function DashboardPage() {
             <div className="flex items-center">
               <h1 className="text-xl font-semibold text-gray-900">Aizalo Dashboard</h1>
             </div>
-            <div className="flex items-center space-x-4">
-              <select 
-                value={selectedPeriod}
-                onChange={(e) => setSelectedPeriod(e.target.value)}
-                className="text-sm border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-              >
-                <option value="today">Today</option>
-                <option value="week">This Week</option>
-                <option value="month">This Month</option>
-                <option value="year">This Year</option>
-              </select>
-              <button className="text-gray-500 hover:text-gray-700">
-                <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                </svg>
-              </button>
-              <button className="flex items-center text-sm text-gray-700 hover:text-gray-900">
-                <div className="h-8 w-8 rounded-full bg-gray-300 mr-2"></div>
-                <span>Bernard K.</span>
-              </button>
+            <div className="flex items-center space-x-6">
+              <nav className="flex space-x-4">
+                <a href="/dashboard" className="text-gray-900 font-medium">Dashboard</a>
+                <a href="/leads" className="text-gray-600 hover:text-gray-900">Leads</a>
+                <a href="/content" className="text-gray-600 hover:text-gray-900">Content</a>
+                <a href="/conversations" className="text-gray-600 hover:text-gray-900">Conversations</a>
+              </nav>
+              <div className="flex items-center space-x-4">
+                <select 
+                  value={selectedPeriod}
+                  onChange={(e) => setSelectedPeriod(e.target.value)}
+                  className="text-sm border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="today">Today</option>
+                  <option value="week">This Week</option>
+                  <option value="month">This Month</option>
+                  <option value="year">This Year</option>
+                </select>
+                <button className="text-gray-500 hover:text-gray-700">
+                  <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                  </svg>
+                </button>
+                <button className="flex items-center text-sm text-gray-700 hover:text-gray-900">
+                  <div className="h-8 w-8 rounded-full bg-gray-300 mr-2"></div>
+                  <span>Bernard K.</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>
