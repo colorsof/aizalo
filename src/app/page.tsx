@@ -1,7 +1,68 @@
 import Link from 'next/link'
 import { Hero } from '@/components/ui/animated-hero'
+import { BentoCard, BentoGrid } from '@/components/ui/bento-grid'
+import IndustriesSection from '@/components/ui/industries-section'
+import { Search, MessageSquare, Heart, TrendingUp, Users, Zap, Globe, ShoppingCart, BarChart3, Brain } from 'lucide-react'
 
 export default function HomePage() {
+  const bentoFeatures = [
+    {
+      Icon: ShoppingCart,
+      name: "Gikomba-Style Bargaining AI",
+      description: "Masters the art of bargaining like a pro! Your AI negotiates prices with the tenacity of Gikomba market vendors, creates urgency, offers flexible M-Pesa payment plans, and closes deals with Nyamakima-style ambition. Converts 25%+ of browsers into buyers.",
+      href: "#features",
+      cta: "Watch AI bargain live",
+      background: (
+        <div className="absolute inset-0 bg-gradient-to-br from-orange-100 via-transparent to-transparent opacity-50" />
+      ),
+      className: "lg:col-start-2 lg:col-end-3 lg:row-start-1 lg:row-end-4",
+    },
+    {
+      Icon: Search,
+      name: "AI Customer Discovery",
+      description: "Automatically finds customers through Google My Business, creates viral TikTok content, and dominates local SEO.",
+      href: "#features",
+      cta: "See how it finds customers",
+      background: (
+        <div className="absolute inset-0 bg-gradient-to-br from-purple-100 via-transparent to-transparent opacity-50" />
+      ),
+      className: "lg:col-start-1 lg:col-end-2 lg:row-start-1 lg:row-end-2",
+    },
+    {
+      Icon: Zap,
+      name: "Lightning-Fast Response",
+      description: "Responds in under 30 seconds on WhatsApp, Facebook, Instagram & TikTok. Instant quotes and conversations.",
+      href: "#features",
+      cta: "View response times",
+      background: (
+        <div className="absolute inset-0 bg-gradient-to-br from-yellow-100 via-transparent to-transparent opacity-50" />
+      ),
+      className: "lg:col-start-3 lg:col-end-4 lg:row-start-1 lg:row-end-2",
+    },
+    {
+      Icon: Brain,
+      name: "Smart Lead Nurturing",
+      description: "AI tracks abandoned carts, sends personalized follow-ups in 2 hours. Never lose a lead again!",
+      href: "#features",
+      cta: "See nurture sequences",
+      background: (
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-100 via-transparent to-transparent opacity-50" />
+      ),
+      className: "lg:col-start-1 lg:col-end-2 lg:row-start-2 lg:row-end-4",
+    },
+    {
+      Icon: Globe,
+      name: "Speaks Your Language",
+      description: "Native support for English, Swahili, and Sheng. Understands local slang and communicates like a true local.",
+      href: "#features",
+      cta: "Try multilingual demo",
+      background: (
+        <div className="absolute inset-0 bg-gradient-to-br from-green-100 via-transparent to-transparent opacity-50" />
+      ),
+      className: "lg:col-start-3 lg:col-end-4 lg:row-start-2 lg:row-end-4",
+    },
+  ];
+
   return (
     <main className="min-h-screen overflow-hidden">
       {/* Navigation Header */}
@@ -41,22 +102,6 @@ export default function HomePage() {
 
         <div className="relative z-10 w-full">
           <Hero />
-          
-          {/* Trust Indicators */}
-          <div className="flex items-center justify-center space-x-8 mb-8 animate-fade-in-up animation-delay-300">
-            <div className="text-center">
-              <p className="text-3xl font-bold text-white">500+</p>
-              <p className="text-sm text-gray-300">Businesses Automated</p>
-            </div>
-            <div className="text-center border-l border-r border-white/20 px-8">
-              <p className="text-3xl font-bold text-white">1M+</p>
-              <p className="text-sm text-gray-300">Conversations Handled</p>
-            </div>
-            <div className="text-center">
-              <p className="text-3xl font-bold text-white">98%</p>
-              <p className="text-sm text-gray-300">Customer Satisfaction</p>
-            </div>
-          </div>
         </div>
 
         {/* Scroll indicator */}
@@ -68,285 +113,27 @@ export default function HomePage() {
       </section>
 
       {/* How It Works Section */}
-      <section id="how-it-works" className="py-24 bg-black text-white relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-black via-purple-900/20 to-black"></div>
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-5xl font-bold mb-6">
-              How It <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">Works</span>
-            </h2>
-            <p className="text-xl text-gray-300 max-w-3xl mx-auto">
-              Three simple steps to transform your business with AI
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-8">
-            {/* Step 1 */}
-            <div className="relative group">
-              <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl blur-xl opacity-50 group-hover:opacity-75 transition-opacity"></div>
-              <div className="relative bg-gray-900 border border-gray-800 rounded-2xl p-8 hover:transform hover:scale-105 transition-all duration-300">
-                <div className="w-16 h-16 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full flex items-center justify-center mb-6">
-                  <span className="text-2xl font-bold">1</span>
-                </div>
-                <h3 className="text-2xl font-bold mb-4">Connect Your Channels</h3>
-                <p className="text-gray-400">
-                  Link your WhatsApp, Facebook, and other communication channels in minutes. 
-                  Our AI instantly starts learning your business.
-                </p>
-              </div>
-            </div>
-
-            {/* Step 2 */}
-            <div className="relative group">
-              <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-cyan-600 rounded-2xl blur-xl opacity-50 group-hover:opacity-75 transition-opacity"></div>
-              <div className="relative bg-gray-900 border border-gray-800 rounded-2xl p-8 hover:transform hover:scale-105 transition-all duration-300">
-                <div className="w-16 h-16 bg-gradient-to-r from-blue-600 to-cyan-600 rounded-full flex items-center justify-center mb-6">
-                  <span className="text-2xl font-bold">2</span>
-                </div>
-                <h3 className="text-2xl font-bold mb-4">Train Your AI</h3>
-                <p className="text-gray-400">
-                  Customize responses, set business rules, and teach your AI about your products 
-                  and services. It learns and improves continuously.
-                </p>
-              </div>
-            </div>
-
-            {/* Step 3 */}
-            <div className="relative group">
-              <div className="absolute inset-0 bg-gradient-to-r from-green-600 to-emerald-600 rounded-2xl blur-xl opacity-50 group-hover:opacity-75 transition-opacity"></div>
-              <div className="relative bg-gray-900 border border-gray-800 rounded-2xl p-8 hover:transform hover:scale-105 transition-all duration-300">
-                <div className="w-16 h-16 bg-gradient-to-r from-green-600 to-emerald-600 rounded-full flex items-center justify-center mb-6">
-                  <span className="text-2xl font-bold">3</span>
-                </div>
-                <h3 className="text-2xl font-bold mb-4">Watch It Grow</h3>
-                <p className="text-gray-400">
-                  Your AI handles inquiries 24/7, qualifies leads, books appointments, 
-                  and turns conversations into revenue automatically.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Industries Section with Modern Cards */}
-      <section id="industries" className="py-24 bg-gray-50 relative">
+      <section id="how-it-works" className="py-24 bg-gray-50 relative overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-5xl font-bold text-gray-900 mb-4">
-              Built for Your Industry
+            <h2 className="text-5xl font-bold mb-6 text-gray-900">
+              The AI Customer <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600">Acquisition Machine</span>
             </h2>
-            <p className="text-xl text-gray-600">
-              Specialized AI solutions that understand your business
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              We don't just answer questions - we FIND customers, NURTURE them, and CLOSE sales while you sleep
             </p>
           </div>
 
-          <div className="grid md:grid-cols-4 gap-6">
-            {/* Hotels & Restaurants Card */}
-            <div className="group relative bg-white rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all duration-300">
-              <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-cyan-600 rounded-2xl opacity-0 group-hover:opacity-5 transition-opacity"></div>
-              <div className="relative">
-                <div className="w-14 h-14 bg-gradient-to-r from-blue-600 to-cyan-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                  <span className="text-2xl">🏨</span>
-                </div>
-                <h3 className="text-xl font-bold mb-3 group-hover:text-blue-600 transition-colors">Hotels & Restaurants</h3>
-                <ul className="space-y-2 text-sm text-gray-600">
-                  <li className="flex items-start">
-                    <span className="text-blue-600 mr-2">•</span>
-                    Instant room/table booking
-                  </li>
-                  <li className="flex items-start">
-                    <span className="text-blue-600 mr-2">•</span>
-                    Dynamic pricing & deals
-                  </li>
-                  <li className="flex items-start">
-                    <span className="text-blue-600 mr-2">•</span>
-                    Review management
-                  </li>
-                </ul>
-              </div>
-            </div>
-
-            {/* Real Estate Card */}
-            <div className="group relative bg-white rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all duration-300">
-              <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl opacity-0 group-hover:opacity-5 transition-opacity"></div>
-              <div className="relative">
-                <div className="w-14 h-14 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                  <span className="text-2xl">🏢</span>
-                </div>
-                <h3 className="text-xl font-bold mb-3 group-hover:text-purple-600 transition-colors">Real Estate</h3>
-                <ul className="space-y-2 text-sm text-gray-600">
-                  <li className="flex items-start">
-                    <span className="text-purple-600 mr-2">•</span>
-                    Property matching AI
-                  </li>
-                  <li className="flex items-start">
-                    <span className="text-purple-600 mr-2">•</span>
-                    Virtual tours & viewings
-                  </li>
-                  <li className="flex items-start">
-                    <span className="text-purple-600 mr-2">•</span>
-                    Lead scoring & tracking
-                  </li>
-                </ul>
-              </div>
-            </div>
-
-            {/* Car Dealerships Card */}
-            <div className="group relative bg-white rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all duration-300">
-              <div className="absolute inset-0 bg-gradient-to-r from-red-600 to-orange-600 rounded-2xl opacity-0 group-hover:opacity-5 transition-opacity"></div>
-              <div className="relative">
-                <div className="w-14 h-14 bg-gradient-to-r from-red-600 to-orange-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                  <span className="text-2xl">🚗</span>
-                </div>
-                <h3 className="text-xl font-bold mb-3 group-hover:text-red-600 transition-colors">Car Dealerships</h3>
-                <ul className="space-y-2 text-sm text-gray-600">
-                  <li className="flex items-start">
-                    <span className="text-red-600 mr-2">•</span>
-                    360° vehicle showcases
-                  </li>
-                  <li className="flex items-start">
-                    <span className="text-red-600 mr-2">•</span>
-                    Finance calculator
-                  </li>
-                  <li className="flex items-start">
-                    <span className="text-red-600 mr-2">•</span>
-                    Test drive booking
-                  </li>
-                </ul>
-              </div>
-            </div>
-
-            {/* Beauty Salons Card */}
-            <div className="group relative bg-white rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all duration-300">
-              <div className="absolute inset-0 bg-gradient-to-r from-pink-600 to-rose-600 rounded-2xl opacity-0 group-hover:opacity-5 transition-opacity"></div>
-              <div className="relative">
-                <div className="w-14 h-14 bg-gradient-to-r from-pink-600 to-rose-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                  <span className="text-2xl">💅</span>
-                </div>
-                <h3 className="text-xl font-bold mb-3 group-hover:text-pink-600 transition-colors">Beauty & Spa</h3>
-                <ul className="space-y-2 text-sm text-gray-600">
-                  <li className="flex items-start">
-                    <span className="text-pink-600 mr-2">•</span>
-                    Stylist portfolios
-                  </li>
-                  <li className="flex items-start">
-                    <span className="text-pink-600 mr-2">•</span>
-                    Appointment optimization
-                  </li>
-                  <li className="flex items-start">
-                    <span className="text-pink-600 mr-2">•</span>
-                    Loyalty programs
-                  </li>
-                </ul>
-              </div>
-            </div>
-
-            {/* Medical Clinics Card */}
-            <div className="group relative bg-white rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all duration-300">
-              <div className="absolute inset-0 bg-gradient-to-r from-green-600 to-emerald-600 rounded-2xl opacity-0 group-hover:opacity-5 transition-opacity"></div>
-              <div className="relative">
-                <div className="w-14 h-14 bg-gradient-to-r from-green-600 to-emerald-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                  <span className="text-2xl">🏥</span>
-                </div>
-                <h3 className="text-xl font-bold mb-3 group-hover:text-green-600 transition-colors">Medical & Dental</h3>
-                <ul className="space-y-2 text-sm text-gray-600">
-                  <li className="flex items-start">
-                    <span className="text-green-600 mr-2">•</span>
-                    Smart reminders
-                  </li>
-                  <li className="flex items-start">
-                    <span className="text-green-600 mr-2">•</span>
-                    Slot optimization
-                  </li>
-                  <li className="flex items-start">
-                    <span className="text-green-600 mr-2">•</span>
-                    Insurance verification
-                  </li>
-                </ul>
-              </div>
-            </div>
-
-            {/* Tech Shops Card */}
-            <div className="group relative bg-white rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all duration-300">
-              <div className="absolute inset-0 bg-gradient-to-r from-indigo-600 to-blue-600 rounded-2xl opacity-0 group-hover:opacity-5 transition-opacity"></div>
-              <div className="relative">
-                <div className="w-14 h-14 bg-gradient-to-r from-indigo-600 to-blue-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                  <span className="text-2xl">💻</span>
-                </div>
-                <h3 className="text-xl font-bold mb-3 group-hover:text-indigo-600 transition-colors">Tech Shops</h3>
-                <ul className="space-y-2 text-sm text-gray-600">
-                  <li className="flex items-start">
-                    <span className="text-indigo-600 mr-2">•</span>
-                    Spec comparisons
-                  </li>
-                  <li className="flex items-start">
-                    <span className="text-indigo-600 mr-2">•</span>
-                    Trade-in valuator
-                  </li>
-                  <li className="flex items-start">
-                    <span className="text-indigo-600 mr-2">•</span>
-                    Tech support chat
-                  </li>
-                </ul>
-              </div>
-            </div>
-
-            {/* Law Firms Card */}
-            <div className="group relative bg-white rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all duration-300">
-              <div className="absolute inset-0 bg-gradient-to-r from-gray-600 to-slate-600 rounded-2xl opacity-0 group-hover:opacity-5 transition-opacity"></div>
-              <div className="relative">
-                <div className="w-14 h-14 bg-gradient-to-r from-gray-600 to-slate-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                  <span className="text-2xl">⚖️</span>
-                </div>
-                <h3 className="text-xl font-bold mb-3 group-hover:text-gray-600 transition-colors">Law Firms</h3>
-                <ul className="space-y-2 text-sm text-gray-600">
-                  <li className="flex items-start">
-                    <span className="text-gray-600 mr-2">•</span>
-                    Consultation booking
-                  </li>
-                  <li className="flex items-start">
-                    <span className="text-gray-600 mr-2">•</span>
-                    Case status portal
-                  </li>
-                  <li className="flex items-start">
-                    <span className="text-gray-600 mr-2">•</span>
-                    Document automation
-                  </li>
-                </ul>
-              </div>
-            </div>
-
-            {/* Hardware Stores Card - #1 Priority */}
-            <div className="group relative bg-white rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all duration-300 ring-4 ring-orange-500 ring-opacity-50">
-              <div className="absolute -top-3 -right-3 bg-gradient-to-r from-orange-500 to-red-500 text-white px-3 py-1 rounded-full text-xs font-bold">
-                🔥 Hot Market
-              </div>
-              <div className="absolute inset-0 bg-gradient-to-r from-orange-600 to-red-600 rounded-2xl opacity-0 group-hover:opacity-5 transition-opacity"></div>
-              <div className="relative">
-                <div className="w-14 h-14 bg-gradient-to-r from-orange-600 to-red-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                  <span className="text-2xl">🔨</span>
-                </div>
-                <h3 className="text-xl font-bold mb-3 group-hover:text-orange-600 transition-colors">Hardware Stores</h3>
-                <ul className="space-y-2 text-sm text-gray-600">
-                  <li className="flex items-start">
-                    <span className="text-orange-600 mr-2">•</span>
-                    Multi-item quotations
-                  </li>
-                  <li className="flex items-start">
-                    <span className="text-orange-600 mr-2">•</span>
-                    Stock & price updates
-                  </li>
-                  <li className="flex items-start">
-                    <span className="text-orange-600 mr-2">•</span>
-                    Bulk order discounts
-                  </li>
-                </ul>
-              </div>
-            </div>
-          </div>
+          <BentoGrid className="lg:grid-rows-3 max-w-7xl mx-auto">
+            {bentoFeatures.map((feature) => (
+              <BentoCard key={feature.name} {...feature} />
+            ))}
+          </BentoGrid>
         </div>
       </section>
+
+      {/* Industries Section */}
+      <IndustriesSection />
 
       {/* Success Stories */}
       <section className="py-20 bg-gradient-to-r from-purple-900 to-indigo-900 text-white">
