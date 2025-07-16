@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import crypto from 'crypto'
 
 export default function WebhookTestPage() {
   const [verifyToken, setVerifyToken] = useState('aizalo_webhook_verify_2024')
@@ -55,13 +56,21 @@ export default function WebhookTestPage() {
         }]
       }
 
+      // Generate the signature like Meta does
+      const bodyString = JSON.stringify(webhookPayload)
+      const appSecret = '693324ea58b196dce7d422be87488c6b' // Your WHATSAPP_APP_SECRET
+      const signature = `sha256=${crypto
+        .createHmac('sha256', appSecret)
+        .update(bodyString)
+        .digest('hex')}`
+      
       const response = await fetch('/api/whatsapp/webhook', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          // Note: In production, Meta will send x-hub-signature-256 header
+          'x-hub-signature-256': signature
         },
-        body: JSON.stringify(webhookPayload)
+        body: bodyString
       })
 
       const result = await response.json()
