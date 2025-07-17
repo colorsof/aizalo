@@ -1,5 +1,86 @@
 # Industry-Specific Features & Strategies
 
+## Website Template Factory System
+
+### Overview
+Each industry gets 10 professionally designed templates to choose from, ensuring variety while maintaining industry-specific functionality. The factory pattern allows rapid deployment and easy customization.
+
+### Template Factory Architecture
+```
+WebsiteFactory
+├── Industry Selector (8 industries)
+├── Template Repository (80 total templates)
+│   ├── Hotels & Restaurants (10 templates)
+│   ├── Real Estate (10 templates)
+│   ├── Car Dealerships (10 templates)
+│   ├── Beauty Salons (10 templates)
+│   ├── Medical Clinics (10 templates)
+│   ├── Tech Shops (10 templates)
+│   ├── Law Firms (10 templates)
+│   └── Hardware Stores (10 templates)
+├── Customization Engine
+│   ├── Color Schemes
+│   ├── Font Selection
+│   ├── Layout Options
+│   └── Feature Toggles
+└── Site Generator
+    ├── SEO Optimization
+    ├── Mobile Responsive
+    ├── WhatsApp Integration
+    └── Analytics Setup
+```
+
+### Template Selection Process
+1. **Onboarding**: Business selects industry
+2. **Template Gallery**: Preview 10 templates with demo data
+3. **Customization**: Adjust colors, fonts, features
+4. **Content Import**: Add business-specific content
+5. **Launch**: Deploy to subdomain instantly
+
+### Technical Implementation
+
+#### Factory Pattern Structure
+```typescript
+interface WebsiteTemplate {
+  id: string
+  name: string
+  industry: string
+  preview: string
+  features: string[]
+  colorSchemes: ColorScheme[]
+  sections: Section[]
+}
+
+class WebsiteFactory {
+  private templates: Map<string, WebsiteTemplate[]>
+  
+  createWebsite(config: {
+    tenantId: string
+    industry: string
+    templateId: string
+    customizations: Customizations
+    content: BusinessContent
+  }): Website {
+    const template = this.getTemplate(config.industry, config.templateId)
+    return this.generateSite(template, config)
+  }
+}
+```
+
+#### Customization Options
+1. **Colors**: Primary, secondary, accent colors
+2. **Typography**: Heading and body font families
+3. **Layout**: Header style, footer layout, section order
+4. **Features**: Toggle specific features on/off
+5. **Integrations**: WhatsApp position, chat style
+
+#### Content Management
+- **Dynamic Sections**: Drag-and-drop section ordering
+- **Media Library**: Upload photos, videos, menus
+- **SEO Settings**: Meta tags, descriptions, keywords
+- **Multi-language**: Support for English and Swahili
+- **Real-time Preview**: See changes instantly
+
 ## Industries by Digital Readiness
 
 ### 🚀 Tier 1: Ready NOW (Highest Digital Adoption)
@@ -14,6 +95,68 @@ These businesses already have websites but lack effective marketing.
 - **Pain Point**: "Our website gets traffic but no bookings"
 - **Decision Maker**: Manager/Owner
 - **Average Deal Size**: Ksh 5,000/month
+
+### Template Options (10 Varieties)
+
+#### 1. **Luxury Elite** - High-end establishments
+- Minimalist design with premium photography
+- Emphasis on ambiance and exclusivity
+- Virtual concierge features
+- Private dining/suite showcases
+
+#### 2. **Boutique Story** - Unique character properties
+- Story-driven design with local art
+- Instagram-worthy gallery sections
+- Guest experience testimonials
+- Cultural immersion packages
+
+#### 3. **Business Express** - Corporate focused
+- Quick booking emphasis
+- Conference facility showcase
+- Corporate rate calculator
+- Meeting room availability
+
+#### 4. **Resort Paradise** - Vacation properties
+- Activity and amenity highlights
+- Weather widget integration
+- Package deal promotions
+- Virtual property tours
+
+#### 5. **Budget Smart** - Value-focused
+- Price comparison tools
+- Quick booking process
+- Deal countdown timers
+- Loyalty program emphasis
+
+#### 6. **Cultural Heritage** - Traditional/authentic
+- Local cuisine showcase
+- Cultural event calendar
+- Traditional music/ambiance
+- Heritage story section
+
+#### 7. **Modern Tech** - Digital-first properties
+- App-like interface
+- QR code menus
+- Contactless check-in
+- Smart room features
+
+#### 8. **Family Haven** - Family-oriented
+- Kids activities section
+- Family package builder
+- Safety features highlight
+- Play area showcase
+
+#### 9. **Eco Green** - Sustainability focused
+- Green certifications display
+- Farm-to-table emphasis
+- Eco-practices showcase
+- Carbon offset calculator
+
+#### 10. **Urban Trendy** - City hotspots
+- Nightlife integration
+- Event calendar
+- Social media feeds
+- Influencer collaborations
 
 ### Key Features
 - **Dynamic Pricing** - Adjust rates based on occupancy

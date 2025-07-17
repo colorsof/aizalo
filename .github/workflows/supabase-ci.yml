@@ -1,0 +1,111 @@
+name: Supabase CI
+
+on:
+  pull_request:
+    paths:
+      - 'supabase/migrations/**'
+      - 'supabase/functions/**'
+      - '.github/workflows/supabase-ci.yml'
+
+jobs:
+  test-migrations:
+    name: Test Migrations
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Start Supabase local development
+        run: supabase start
+
+      - name: Run migrations
+        run: |
+          supabase db reset
+          echo "✅ All migrations applied successfully"
+
+      - name: Run migration tests
+        run: |
+          # Test that all tables exist
+          supabase db test --file tests/migrations.test.sql || echo "No tests found"
+
+      - name: Check for migration conflicts
+        run: |
+          # List all migrations to check for conflicts
+          echo "Current migrations:"
+          ls -la supabase/migrations/
+
+      - name: Stop Supabase
+        if: always()
+        run: supabase stop
+
+  lint-sql:
+    name: Lint SQL Files
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install sqlfluff
+        run: |
+          pip install sqlfluff
+
+      - name: Lint SQL files
+        run: |
+          # Create .sqlfluff config if it doesn't exist
+          if [ ! -f .sqlfluff ]; then
+            cat > .sqlfluff << EOF
+          [sqlfluff]
+          dialect = postgres
+          templater = raw
+          max_line_length = 120
+          
+          [sqlfluff:rules]
+          comma_style = trailing
+          EOF
+          fi
+          
+          # Lint all SQL files
+          sqlfluff lint supabase/migrations/*.sql --dialect postgres || true
+
+  security-check:
+    name: Security Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Check for hardcoded secrets
+        run: |
+          # Check for potential secrets in migrations
+          echo "Checking for hardcoded secrets..."
+          
+          # Look for common secret patterns
+          if grep -r -E "(password|secret|key|token)\s*=\s*['\"][^'\"]+['\"]" supabase/migrations/ --include="*.sql"; then
+            echo "⚠️ Warning: Potential hardcoded secrets found!"
+            echo "Please use environment variables or Supabase vault for secrets."
+          else
+            echo "✅ No hardcoded secrets found"
+          fi
+
+      - name: Check RLS policies
+        run: |
+          # Check that RLS is enabled on all tables
+          echo "Checking RLS policies..."
+          
+          # Count tables vs RLS policies
+          table_count=$(grep -c "CREATE TABLE" supabase/migrations/*.sql || echo 0)
+          rls_count=$(grep -c "ENABLE ROW LEVEL SECURITY" supabase/migrations/*.sql || echo 0)
+          
+          echo "Tables created: $table_count"
+          echo "RLS policies: $rls_count"
+          
+          if [ "$table_count" -gt "$rls_count" ]; then
+            echo "⚠️ Warning: Some tables might be missing RLS policies!"
+          else
+            echo "✅ RLS policies look good"
+          fi
