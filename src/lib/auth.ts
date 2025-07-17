@@ -18,8 +18,8 @@ export interface UserMetadata {
 }
 
 // Create Supabase client for server components
-export function createServerClient() {
-  const cookieStore = cookies();
+export async function createServerClient() {
+  const cookieStore = await cookies();
   
   return createSupabaseServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -67,7 +67,7 @@ export function createRouteHandlerClient(request: NextRequest) {
 
 // Get current user from Supabase Auth
 export async function getCurrentUser() {
-  const supabase = createServerClient();
+  const supabase = await createServerClient();
   const { data: { user }, error } = await supabase.auth.getUser();
   
   if (error || !user) {

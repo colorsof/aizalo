@@ -76,12 +76,10 @@ async function migratePlatformUsers() {
           console.log(`ℹ️  User ${user.email} already exists in auth, attempting to link...`);
           
           // Try to get the existing auth user
-          const { data: existingUsers } = await supabase.auth.admin.listUsers({
-            filter: `email.eq.${user.email}`
-          });
+          const { data: existingUsers } = await supabase.auth.admin.listUsers();
           
-          if (existingUsers?.users?.length > 0) {
-            const existingUser = existingUsers.users[0];
+          const existingUser = existingUsers?.users?.find(u => u.email === user.email);
+          if (existingUser) {
             
             // Update platform user with existing auth_id
             const { error: updateError } = await supabase
@@ -175,12 +173,10 @@ async function migrateTenantUsers() {
           console.log(`ℹ️  User ${user.email} already exists in auth, attempting to link...`);
           
           // Try to get the existing auth user
-          const { data: existingUsers } = await supabase.auth.admin.listUsers({
-            filter: `email.eq.${user.email}`
-          });
+          const { data: existingUsers } = await supabase.auth.admin.listUsers();
           
-          if (existingUsers?.users?.length > 0) {
-            const existingUser = existingUsers.users[0];
+          const existingUser = existingUsers?.users?.find(u => u.email === user.email);
+          if (existingUser) {
             
             // Update tenant user with existing auth_id
             const { error: updateError } = await supabase

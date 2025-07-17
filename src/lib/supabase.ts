@@ -1,12 +1,10 @@
 import { createClient } from '@supabase/supabase-js';
-import { NextRequest } from 'next/server';
-import { getCurrentUser } from './auth';
 
 /**
  * Creates a Supabase client for server-side use with proper auth context
  * This should be used instead of service role key for most operations
  */
-export async function createServerClient(request?: NextRequest) {
+export function createServerSupabaseClient() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   
@@ -14,32 +12,10 @@ export async function createServerClient(request?: NextRequest) {
     throw new Error('Supabase URL and anon key must be provided');
   }
   
-  // Get current user from JWT if available
-  const user = await getCurrentUser();
+  // Note: We're using Supabase Auth now, so we don't need to manually handle tokens
+  // The Supabase client will automatically use the session from cookies
   
-  // If we have a user and request, extract the auth token
-  let authToken: string | undefined;
-  
-  if (request) {
-    // Try to get token from cookie based on user type
-    if (user?.userType === 'platform') {
-      authToken = request.cookies.get('platform-auth')?.value;
-    } else if (user?.userType === 'tenant') {
-      authToken = request.cookies.get('tenant-auth')?.value;
-    }
-  }
-  
-  // Create client with auth context if available
-  const options: any = {};
-  if (authToken) {
-    options.global = {
-      headers: {
-        Authorization: `Bearer ${authToken}`,
-      },
-    };
-  }
-  
-  return createClient(supabaseUrl, supabaseAnonKey, options);
+  return createClient(supabaseUrl, supabaseAnonKey);
 }
 
 /**

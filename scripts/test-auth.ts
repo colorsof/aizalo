@@ -175,7 +175,7 @@ async function runTests() {
   );
   
   // Test 2: Access protected platform endpoint
-  if (platformLogin.success) {
+  if (platformLogin.success && platformLogin.headers) {
     const setCookie = platformLogin.headers.get('set-cookie');
     const cookies = setCookie ? { Cookie: setCookie } : {};
     
@@ -217,7 +217,7 @@ async function runTests() {
   );
   
   // Test 5: Access protected tenant endpoint
-  if (tenantLogin.success) {
+  if (tenantLogin.success && tenantLogin.headers) {
     const setCookie = tenantLogin.headers.get('set-cookie');
     const cookies = setCookie ? { Cookie: setCookie } : {};
     

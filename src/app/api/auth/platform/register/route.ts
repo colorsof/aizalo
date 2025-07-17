@@ -1,23 +1,43 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createRouteHandlerClient, UserMetadata } from '@/lib/auth';
 import { z } from 'zod';
+import { validatePassword } from '@/lib/password-validator';
+import { authRateLimiter, getClientIp, rateLimitResponse } from '@/lib/rate-limiter';
 
 // Validation schema
 const registerSchema = z.object({
   email: z.string().email(),
-  password: z.string().min(8).regex(
-    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/,
-    'Password must contain uppercase, lowercase, number and special character'
-  ),
+  password: z.string().min(8),
   fullName: z.string().min(2),
 });
 
 export async function POST(request: NextRequest) {
   try {
+    // Check rate limit
+    const clientIp = getClientIp(request);
+    const rateLimitKey = `register:${clientIp}`;
+    
+    if (authRateLimiter.isRateLimited(rateLimitKey)) {
+      return rateLimitResponse(rateLimitKey, authRateLimiter);
+    }
+    
     const body = await request.json();
     
     // Validate input
     const { email, password, fullName } = registerSchema.parse(body);
+    
+    // Validate password strength
+    const passwordValidation = validatePassword(password);
+    if (!passwordValidation.isValid) {
+      return NextResponse.json(
+        { 
+          error: 'Password does not meet requirements',
+          details: passwordValidation.errors,
+          strength: passwordValidation.strength,
+        },
+        { status: 400 }
+      );
+    }
     
     // Create Supabase client
     const { supabase, response } = createRouteHandlerClient(request);

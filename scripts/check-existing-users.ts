@@ -90,7 +90,7 @@ async function checkUsers() {
       return acc;
     }, {} as Record<string, number>);
     
-    const duplicates = Object.entries(emailCounts).filter(([_, count]) => count > 1);
+    const duplicates = Object.entries(emailCounts).filter(([_, count]) => (count as number) > 1);
     
     if (duplicates.length > 0) {
       console.log('\n⚠️  Duplicate emails found:');

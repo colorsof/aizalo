@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createRouteHandlerClient } from '@/lib/auth';
 import { z } from 'zod';
+import { authRateLimiter, getClientIp, rateLimitResponse } from '@/lib/rate-limiter';
 
 // Validation schema
 const loginSchema = z.object({
@@ -10,6 +11,14 @@ const loginSchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
+    // Check rate limit
+    const clientIp = getClientIp(request);
+    const rateLimitKey = `login:${clientIp}`;
+    
+    if (authRateLimiter.isRateLimited(rateLimitKey)) {
+      return rateLimitResponse(rateLimitKey, authRateLimiter);
+    }
+    
     const body = await request.json();
     
     // Validate input
@@ -17,6 +26,34 @@ export async function POST(request: NextRequest) {
     
     // Create Supabase client
     const { supabase, response } = createRouteHandlerClient(request);
+    
+    // Check if account is locked
+    const { data: lockStatus } = await supabase.rpc('check_account_locked', {
+      p_email: email,
+      p_user_type: 'platform'
+    });
+    
+    if (lockStatus && lockStatus[0]?.is_locked) {
+      const lockedUntil = new Date(lockStatus[0].locked_until);
+      const minutesRemaining = Math.ceil((lockedUntil.getTime() - Date.now()) / 60000);
+      
+      await supabase.rpc('log_auth_event', {
+        p_event_type: 'login_failed',
+        p_user_email: email,
+        p_user_type: 'platform',
+        p_ip_address: clientIp,
+        p_metadata: { reason: 'account_locked' }
+      });
+      
+      return NextResponse.json(
+        { 
+          error: 'Account is temporarily locked',
+          message: `Too many failed login attempts. Please try again in ${minutesRemaining} minutes.`,
+          lockedUntil: lockedUntil.toISOString(),
+        },
+        { status: 423 } // 423 Locked
+      );
+    }
     
     // First check if this is a platform user
     const { data: platformUser } = await supabase
@@ -26,6 +63,12 @@ export async function POST(request: NextRequest) {
       .single();
     
     if (!platformUser) {
+      // Record failed attempt
+      await supabase.rpc('record_failed_login', {
+        p_email: email,
+        p_user_type: 'platform'
+      });
+      
       return NextResponse.json(
         { error: 'Invalid credentials' },
         { status: 401 }
@@ -47,6 +90,12 @@ export async function POST(request: NextRequest) {
     });
     
     if (authError || !authData.user) {
+      // Record failed attempt
+      const { data: failedAttempt } = await supabase.rpc('record_failed_login', {
+        p_email: email,
+        p_user_type: 'platform'
+      });
+      
       // If auth fails but user exists in our table, they might need migration
       if (!platformUser.auth_id) {
         return NextResponse.json(
@@ -55,11 +104,32 @@ export async function POST(request: NextRequest) {
         );
       }
       
+      // Check if account is now locked
+      if (failedAttempt && failedAttempt[0]?.is_locked) {
+        return NextResponse.json(
+          { 
+            error: 'Account is now locked',
+            message: 'Too many failed login attempts. Account has been locked for 30 minutes.',
+            attempts: failedAttempt[0].attempts,
+          },
+          { status: 423 }
+        );
+      }
+      
       return NextResponse.json(
-        { error: 'Invalid credentials' },
+        { 
+          error: 'Invalid credentials',
+          remainingAttempts: failedAttempt ? 5 - failedAttempt[0].attempts : null,
+        },
         { status: 401 }
       );
     }
+    
+    // Reset failed attempts on successful login
+    await supabase.rpc('reset_failed_login_attempts', {
+      p_email: email,
+      p_user_type: 'platform'
+    });
     
     // Update last login
     await supabase
@@ -67,16 +137,15 @@ export async function POST(request: NextRequest) {
       .update({ last_login_at: new Date().toISOString() })
       .eq('id', platformUser.id);
     
-    // Log the login event
-    await supabase.from('system_logs').insert({
-      level: 'info',
-      source: 'auth',
-      message: `Platform user logged in: ${platformUser.email}`,
-      metadata: {
-        user_id: platformUser.id,
-        user_type: 'platform',
-        role: platformUser.role,
-      },
+    // Log the successful login event
+    await supabase.rpc('log_auth_event', {
+      p_event_type: 'login_success',
+      p_user_id: platformUser.id,
+      p_user_email: platformUser.email,
+      p_user_type: 'platform',
+      p_ip_address: clientIp,
+      p_user_agent: request.headers.get('user-agent'),
+      p_metadata: { role: platformUser.role }
     });
     
     // Return success with user data

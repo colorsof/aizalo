@@ -1,13 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
-import { hashPassword, createToken, setAuthCookie } from '@/lib/auth';
+import { createRouteHandlerClient, UserMetadata } from '@/lib/auth';
 import { z } from 'zod';
-
-// Initialize Supabase admin client
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+import { validatePassword } from '@/lib/password-validator';
+import { authRateLimiter, getClientIp, rateLimitResponse } from '@/lib/rate-limiter';
 
 // Validation schema for tenant registration
 const tenantRegisterSchema = z.object({
@@ -23,10 +18,7 @@ const tenantRegisterSchema = z.object({
   ownerEmail: z.string().email(),
   ownerName: z.string().min(2),
   ownerPhone: z.string().optional(),
-  password: z.string().min(8).regex(
-    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/,
-    'Password must contain uppercase, lowercase, number and special character'
-  ),
+  password: z.string().min(8),
   
   // Plan selection
   subscriptionPlan: z.enum(['trial', 'starter', 'growth', 'enterprise']).default('trial'),
@@ -34,10 +26,34 @@ const tenantRegisterSchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
+    // Check rate limit
+    const clientIp = getClientIp(request);
+    const rateLimitKey = `tenant_register:${clientIp}`;
+    
+    if (authRateLimiter.isRateLimited(rateLimitKey)) {
+      return rateLimitResponse(rateLimitKey, authRateLimiter);
+    }
+    
     const body = await request.json();
     
     // Validate input
     const validatedData = tenantRegisterSchema.parse(body);
+    
+    // Validate password strength
+    const passwordValidation = validatePassword(validatedData.password);
+    if (!passwordValidation.isValid) {
+      return NextResponse.json(
+        { 
+          error: 'Password does not meet requirements',
+          details: passwordValidation.errors,
+          strength: passwordValidation.strength,
+        },
+        { status: 400 }
+      );
+    }
+    
+    // Create Supabase client
+    const { supabase, response } = createRouteHandlerClient(request);
     
     // Check if subdomain is already taken
     const { data: existingTenant } = await supabase
@@ -48,36 +64,34 @@ export async function POST(request: NextRequest) {
     
     if (existingTenant) {
       return NextResponse.json(
-        { error: 'This subdomain is already taken. Please choose another.' },
+        { error: 'This subdomain is already taken' },
         { status: 400 }
       );
     }
     
-    // Check if email is already registered as a tenant owner
-    const { data: existingOwner } = await supabase
-      .from('tenants')
+    // Check if email already exists
+    const { data: existingUser } = await supabase
+      .from('tenant_users')
       .select('id')
-      .eq('owner_email', validatedData.ownerEmail)
+      .eq('email', validatedData.ownerEmail)
       .single();
     
-    if (existingOwner) {
+    if (existingUser) {
       return NextResponse.json(
-        { error: 'This email is already registered as a business owner.' },
+        { error: 'User with this email already exists' },
         { status: 400 }
       );
     }
     
     // Start a transaction by creating tenant first
-    const { data: tenant, error: tenantError } = await supabase
+    const { data: newTenant, error: tenantError } = await supabase
       .from('tenants')
       .insert({
         business_name: validatedData.businessName,
         subdomain: validatedData.subdomain,
-        owner_email: validatedData.ownerEmail,
-        owner_phone: validatedData.ownerPhone,
-        industry: validatedData.industry,
+        industry_type: validatedData.industry || 'general',
         subscription_plan: validatedData.subscriptionPlan,
-        subscription_status: validatedData.subscriptionPlan === 'trial' ? 'trial' : 'pending_payment',
+        subscription_status: validatedData.subscriptionPlan === 'trial' ? 'trial' : 'active',
         trial_ends_at: validatedData.subscriptionPlan === 'trial' 
           ? new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString() // 14 days trial
           : null,
@@ -85,99 +99,73 @@ export async function POST(request: NextRequest) {
       .select()
       .single();
     
-    if (tenantError || !tenant) {
+    if (tenantError || !newTenant) {
       console.error('Error creating tenant:', tenantError);
       return NextResponse.json(
-        { error: 'Failed to create business account' },
+        { error: 'Failed to create tenant account' },
         { status: 500 }
       );
     }
     
-    // Hash password
-    const passwordHash = await hashPassword(validatedData.password);
+    // Create user metadata
+    const metadata: UserMetadata = {
+      userType: 'tenant',
+      role: 'owner',
+      fullName: validatedData.ownerName,
+      tenantId: newTenant.id,
+    };
     
-    // Create tenant owner user
-    const { data: tenantUser, error: userError } = await supabase
-      .from('tenant_users')
-      .insert({
-        tenant_id: tenant.id,
-        email: validatedData.ownerEmail,
-        full_name: validatedData.ownerName,
-        password_hash: passwordHash,
-        role: 'owner',
-        is_active: true,
-      })
-      .select()
-      .single();
+    // Create auth user
+    const { data: authData, error: authError } = await supabase.auth.signUp({
+      email: validatedData.ownerEmail,
+      password: validatedData.password,
+      options: {
+        data: metadata,
+        emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/${validatedData.subdomain}/auth/callback`,
+      },
+    });
     
-    if (userError || !tenantUser) {
-      console.error('Error creating tenant user:', userError);
+    if (authError || !authData.user) {
       // Rollback tenant creation
-      await supabase.from('tenants').delete().eq('id', tenant.id);
+      await supabase
+        .from('tenants')
+        .delete()
+        .eq('id', newTenant.id);
       
+      console.error('Error creating auth user:', authError);
       return NextResponse.json(
         { error: 'Failed to create user account' },
         { status: 500 }
       );
     }
     
-    // Create default settings for the tenant
-    const defaultSettings = [
-      { category: 'auth', key: 'allow_self_registration', value: 'false' },
-      { category: 'auth', key: 'require_email_verification', value: 'true' },
-      { category: 'whatsapp', key: 'session_timeout_minutes', value: '30' },
-      { category: 'notifications', key: 'email_notifications', value: 'true' },
-    ];
-    
-    await supabase.from('tenant_settings').insert(
-      defaultSettings.map(setting => ({
-        tenant_id: tenant.id,
-        ...setting,
-      }))
-    );
+    // The tenant_user will be created by the auth trigger
     
     // Log the registration
-    await supabase.from('system_logs').insert({
-      level: 'info',
-      source: 'auth',
-      message: `New tenant registered: ${validatedData.businessName}`,
-      metadata: {
-        tenant_id: tenant.id,
+    await supabase.rpc('log_auth_event', {
+      p_event_type: 'register',
+      p_user_email: validatedData.ownerEmail,
+      p_user_type: 'tenant',
+      p_ip_address: clientIp,
+      p_metadata: {
+        tenant_id: newTenant.id,
+        business_name: validatedData.businessName,
         subdomain: validatedData.subdomain,
         plan: validatedData.subscriptionPlan,
-        owner_email: validatedData.ownerEmail,
-      },
+      }
     });
-    
-    // Auto-login the user after registration
-    const token = await createToken({
-      sub: tenantUser.id,
-      email: tenantUser.email,
-      role: tenantUser.role,
-      tenantId: tenant.id,
-      userType: 'tenant',
-    });
-    
-    // Set cookie
-    setAuthCookie(token, 'tenant');
     
     return NextResponse.json({
       success: true,
-      message: 'Registration successful!',
+      message: 'Registration successful. Please check your email to confirm your account.',
       tenant: {
-        id: tenant.id,
-        businessName: tenant.business_name,
-        subdomain: tenant.subdomain,
-        subscriptionPlan: tenant.subscription_plan,
-        trialEndsAt: tenant.trial_ends_at,
+        id: newTenant.id,
+        subdomain: newTenant.subdomain,
+        businessName: newTenant.business_name,
       },
-      user: {
-        id: tenantUser.id,
-        email: tenantUser.email,
-        fullName: tenantUser.full_name,
-        role: tenantUser.role,
-      },
-      redirectUrl: `/${tenant.subdomain}/dashboard`,
+      redirectUrl: `/${validatedData.subdomain}/auth/confirm`,
+    }, {
+      headers: response.headers,
     });
     
   } catch (error) {

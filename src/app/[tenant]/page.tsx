@@ -10,14 +10,15 @@ import LawFirmTemplate from '@/components/templates/LawFirmTemplate'
 import HardwareStoreTemplate from '@/components/templates/HardwareStoreTemplate'
 
 interface PageProps {
-  params: {
+  params: Promise<{
     tenant: string
-  }
+  }>
 }
 
 export default async function TenantPublicSite({ params }: PageProps) {
+  const { tenant: subdomain } = await params;
   // Get tenant data from database
-  const tenant = await getTenantBySubdomain(params.tenant)
+  const tenant = await getTenantBySubdomain(subdomain)
   
   if (!tenant) {
     notFound()

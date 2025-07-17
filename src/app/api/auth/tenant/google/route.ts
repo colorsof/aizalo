@@ -1,207 +1,172 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
-import { createToken, setAuthCookie } from '@/lib/auth';
-import { OAuth2Client } from 'google-auth-library';
-import { z } from 'zod';
+import { createRouteHandlerClient } from '@/lib/auth';
 
-// Initialize Supabase admin client
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
-
-// Initialize Google OAuth client
-const googleClient = new OAuth2Client(
-  process.env.GOOGLE_CLIENT_ID,
-  process.env.GOOGLE_CLIENT_SECRET,
-  `${process.env.NEXT_PUBLIC_APP_URL}/api/auth/tenant/google/callback`
-);
-
-// Validation schema
-const googleTokenSchema = z.object({
-  credential: z.string(), // The Google ID token
-  subdomain: z.string().min(3), // Required to identify the tenant
-});
-
-export async function POST(request: NextRequest) {
+/**
+ * Google OAuth for tenant users using Supabase Auth
+ * Requires tenant context (subdomain or tenantId)
+ */
+export async function GET(request: NextRequest) {
+  const requestUrl = new URL(request.url);
+  const code = requestUrl.searchParams.get('code');
+  const state = requestUrl.searchParams.get('state');
+  
+  // Parse state to get subdomain
+  let subdomain: string | null = null;
   try {
-    const body = await request.json();
+    if (state) {
+      const stateData = JSON.parse(Buffer.from(state, 'base64').toString());
+      subdomain = stateData.subdomain;
+    }
+  } catch (e) {
+    console.error('Error parsing state:', e);
+  }
+  
+  if (code) {
+    // This is the callback from Google
+    const { supabase, response } = createRouteHandlerClient(request);
     
-    // Validate input
-    const { credential, subdomain } = googleTokenSchema.parse(body);
+    // Exchange code for session
+    const { error } = await supabase.auth.exchangeCodeForSession(code);
     
-    // Verify Google token
-    const ticket = await googleClient.verifyIdToken({
-      idToken: credential,
-      audience: process.env.GOOGLE_CLIENT_ID!,
-    });
-    
-    const payload = ticket.getPayload();
-    if (!payload || !payload.email) {
-      return NextResponse.json(
-        { error: 'Invalid Google token' },
-        { status: 401 }
+    if (error) {
+      console.error('Error exchanging code for session:', error);
+      return NextResponse.redirect(
+        `${process.env.NEXT_PUBLIC_APP_URL}/auth/error?message=${encodeURIComponent(error.message)}`
       );
     }
     
-    // Get the tenant by subdomain
-    const { data: tenant, error: tenantError } = await supabase
-      .from('tenants')
-      .select('id, business_name, subscription_status')
-      .eq('subdomain', subdomain)
-      .single();
+    // Get the session
+    const { data: { session } } = await supabase.auth.getSession();
     
-    if (tenantError || !tenant) {
-      return NextResponse.json(
-        { error: 'Invalid tenant' },
-        { status: 404 }
-      );
-    }
-    
-    // Check if tenant is active
-    if (!['active', 'trial'].includes(tenant.subscription_status)) {
-      return NextResponse.json(
-        { error: 'Tenant subscription is not active' },
-        { status: 403 }
-      );
-    }
-    
-    // Check if user exists in tenant_users
-    const { data: existingUser, error: fetchError } = await supabase
-      .from('tenant_users')
-      .select('id, email, full_name, role, is_active, google_id, tenant_id')
-      .eq('email', payload.email)
-      .eq('tenant_id', tenant.id)
-      .single();
-    
-    let user;
-    
-    if (existingUser) {
-      // User exists, check if active
-      if (!existingUser.is_active) {
-        return NextResponse.json(
-          { error: 'Account is deactivated' },
-          { status: 403 }
-        );
-      }
-      
-      // Update Google ID if not set
-      if (!existingUser.google_id) {
-        await supabase
-          .from('tenant_users')
-          .update({ 
-            google_id: payload.sub,
-            last_login_at: new Date().toISOString()
-          })
-          .eq('id', existingUser.id);
-      } else {
-        // Just update last login
-        await supabase
-          .from('tenant_users')
-          .update({ last_login_at: new Date().toISOString() })
-          .eq('id', existingUser.id);
-      }
-      
-      user = existingUser;
-    } else {
-      // New user - check if self-registration is allowed for this tenant
-      const { data: tenantSettings } = await supabase
-        .from('tenant_settings')
-        .select('value')
-        .eq('tenant_id', tenant.id)
-        .eq('category', 'auth')
-        .eq('key', 'allow_self_registration')
+    if (session?.user && subdomain) {
+      // Get tenant by subdomain
+      const { data: tenant } = await supabase
+        .from('tenants')
+        .select('id, subdomain, subscription_status')
+        .eq('subdomain', subdomain)
         .single();
       
-      const allowSelfRegistration = tenantSettings?.value === 'true';
-      
-      if (!allowSelfRegistration) {
-        return NextResponse.json(
-          { error: 'Self-registration is not allowed. Please contact your administrator.' },
-          { status: 403 }
+      if (!tenant || (tenant.subscription_status !== 'active' && tenant.subscription_status !== 'trial')) {
+        await supabase.auth.signOut();
+        return NextResponse.redirect(
+          `${process.env.NEXT_PUBLIC_APP_URL}/auth/error?message=Invalid or inactive tenant`
         );
       }
       
-      // Create new tenant user
-      const { data: newUser, error: createError } = await supabase
+      // Check if tenant user exists
+      const { data: tenantUser } = await supabase
         .from('tenant_users')
-        .insert({
-          tenant_id: tenant.id,
-          email: payload.email,
-          full_name: payload.name || payload.email.split('@')[0],
-          google_id: payload.sub,
-          password_hash: 'GOOGLE_AUTH', // Placeholder for Google auth users
-          role: 'staff', // Default role for new users
-          is_active: true,
-          last_login_at: new Date().toISOString(),
-        })
-        .select()
+        .select('id, role')
+        .eq('email', session.user.email)
+        .eq('tenant_id', tenant.id)
         .single();
       
-      if (createError || !newUser) {
-        console.error('Error creating user:', createError);
-        return NextResponse.json(
-          { error: 'Failed to create user account' },
-          { status: 500 }
+      if (tenantUser) {
+        // Update auth metadata
+        await supabase.auth.updateUser({
+          data: {
+            userType: 'tenant',
+            role: tenantUser.role,
+            tenantId: tenant.id,
+            tenantUserId: tenantUser.id,
+          }
+        });
+        
+        return NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/${subdomain}/dashboard`);
+      } else {
+        // Check if self-registration is allowed
+        const { data: tenantSettings } = await supabase
+          .from('tenant_settings')
+          .select('value')
+          .eq('tenant_id', tenant.id)
+          .eq('category', 'auth')
+          .eq('key', 'allow_self_registration')
+          .single();
+        
+        const allowSelfRegistration = tenantSettings?.value === 'true';
+        
+        if (!allowSelfRegistration) {
+          await supabase.auth.signOut();
+          return NextResponse.redirect(
+            `${process.env.NEXT_PUBLIC_APP_URL}/auth/error?message=Self-registration is not allowed`
+          );
+        }
+        
+        // Create new tenant user
+        const { data: newUser, error: createError } = await supabase
+          .from('tenant_users')
+          .insert({
+            auth_id: session.user.id,
+            tenant_id: tenant.id,
+            email: session.user.email!,
+            full_name: session.user.user_metadata?.full_name || session.user.email!.split('@')[0],
+            role: 'staff', // Default role
+            is_active: true,
+          })
+          .select()
+          .single();
+        
+        if (!createError && newUser) {
+          // Update auth metadata
+          await supabase.auth.updateUser({
+            data: {
+              userType: 'tenant',
+              role: newUser.role,
+              tenantId: tenant.id,
+              tenantUserId: newUser.id,
+            }
+          });
+          
+          return NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/${subdomain}/dashboard`);
+        }
+        
+        // Creation failed
+        await supabase.auth.signOut();
+        return NextResponse.redirect(
+          `${process.env.NEXT_PUBLIC_APP_URL}/auth/error?message=Failed to create user`
         );
       }
-      
-      user = newUser;
     }
-    
-    // Create JWT token with tenant context
-    const token = await createToken({
-      sub: user.id,
-      email: user.email,
-      role: user.role,
-      tenantId: tenant.id,
-      userType: 'tenant',
-    });
-    
-    // Set cookie
-    setAuthCookie(token, 'tenant');
-    
-    // Log the login event
-    await supabase.from('system_logs').insert({
-      level: 'info',
-      source: 'auth',
-      message: `Tenant user logged in via Google: ${user.email}`,
-      metadata: {
-        user_id: user.id,
-        user_type: 'tenant',
-        tenant_id: tenant.id,
-        tenant_name: tenant.business_name,
-        role: user.role,
-        auth_method: 'google',
-      },
-    });
-    
-    return NextResponse.json({
-      success: true,
-      user: {
-        id: user.id,
-        email: user.email,
-        fullName: user.full_name,
-        role: user.role,
-        tenantId: tenant.id,
-        tenantName: tenant.business_name,
-      },
-      redirectUrl: `/${subdomain}/dashboard`,
-    });
-    
-  } catch (error) {
-    console.error('Google login error:', error);
-    
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { error: 'Invalid input', details: error.errors },
-        { status: 400 }
-      );
-    }
-    
+  }
+  
+  // Get subdomain from query params for initial request
+  const querySubdomain = requestUrl.searchParams.get('subdomain');
+  
+  if (!querySubdomain) {
     return NextResponse.json(
-      { error: 'Google authentication failed' },
-      { status: 500 }
+      { error: 'Subdomain is required' },
+      { status: 400 }
     );
   }
+  
+  // Create state with subdomain
+  const stateParam = Buffer.from(JSON.stringify({ subdomain: querySubdomain })).toString('base64');
+  
+  // Initiate Google OAuth flow
+  const { supabase, response } = createRouteHandlerClient(request);
+  
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      redirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/api/auth/tenant/google`,
+      scopes: 'email profile',
+      queryParams: {
+        access_type: 'offline',
+        prompt: 'consent',
+        state: stateParam,
+      }
+    }
+  });
+  
+  if (error) {
+    return NextResponse.redirect(
+      `${process.env.NEXT_PUBLIC_APP_URL}/auth/error?message=${encodeURIComponent(error.message)}`
+    );
+  }
+  
+  if (data.url) {
+    return NextResponse.redirect(data.url);
+  }
+  
+  return NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/auth/error`);
 }

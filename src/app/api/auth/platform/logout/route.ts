@@ -1,46 +1,38 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
-import { getCurrentUser, clearAuthCookies } from '@/lib/auth';
-
-// Initialize Supabase admin client
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+import { createRouteHandlerClient } from '@/lib/auth';
 
 export async function POST(request: NextRequest) {
   try {
-    // Get current user
-    const user = await getCurrentUser();
+    // Create Supabase client
+    const { supabase, response } = createRouteHandlerClient(request);
     
-    if (user && user.userType === 'platform') {
+    // Get session
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    if (session?.user) {
       // Log the logout event
-      await supabase.from('system_logs').insert({
-        level: 'info',
-        source: 'auth',
-        message: `Platform user logged out: ${user.email}`,
-        metadata: {
-          user_id: user.sub,
-          user_type: 'platform',
-          role: user.role,
-        },
+      await supabase.rpc('log_auth_event', {
+        p_event_type: 'logout',
+        p_user_id: session.user.user_metadata?.platformUserId,
+        p_user_email: session.user.email,
+        p_user_type: 'platform',
+        p_metadata: { role: session.user.user_metadata?.role }
       });
     }
     
-    // Clear auth cookies
-    clearAuthCookies();
+    // Sign out
+    await supabase.auth.signOut();
     
     return NextResponse.json({
       success: true,
       message: 'Logged out successfully',
       redirectUrl: '/login',
+    }, {
+      headers: response.headers,
     });
     
   } catch (error) {
     console.error('Platform logout error:', error);
-    
-    // Even if error occurs, clear cookies
-    clearAuthCookies();
     
     return NextResponse.json(
       { success: true, message: 'Logged out', redirectUrl: '/login' },
